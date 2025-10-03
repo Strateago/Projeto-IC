@@ -1,6 +1,6 @@
 import numpy as np
 import time
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from Projeto_IC import MultiLevel_NUADM
 
 def generate_adj_cent(H, V, A):
@@ -69,9 +69,9 @@ def label_levels_from_fines(adjs, fines, max_level):
 
     return levels
 
-H = 10
-V = 10
-A = 1
+H = 81
+V = 81
+A = 81
 tempos_lvl = []
 tempos_ids = []
 tamanhos = []

@@ -1,4 +1,5 @@
 import numpy as np
+import line_profiler
 
 class MeshDataStructure:
     """
@@ -182,7 +183,7 @@ class MultiLevel_NUADM:
         ms = ms.flatten()
         return ms.reshape(3,int(ms.size/3)).T
     
-    # @line_profiler.profile
+    @line_profiler.profile
     def generate_levels(self, centroids):
         """
         Generates the primal and dual meshes for each level based on the centroids.
