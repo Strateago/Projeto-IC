@@ -103,9 +103,15 @@ class SpectralAnalysisMethods:
     def ILUfac(self, args):
         # ----- MATRIZ Tfine COM SUAVIZADOR ILU(0) -----
         nnod, upperTfine, lowerTfine, diagTfine = args
+        Tfine_sp = sp.csc_matrix(self._Tfine)
+        ilu = spla.spilu(Tfine_sp, drop_tol=0.0, fill_factor=1.0)
         precond_ilu = np.zeros((nnod, nnod))                    # pré-condicionador ILU
-        precond_system = precond_ilu @ self._Tfine                    # matriz pré-condicionada
-        precond_b = precond_ilu @ self._b                             # vetor dos carregamentos externos pré-condicionado
+        for j in range(nnod):
+            ej = np.zeros(nnod)   
+            ej[j] = 1.0
+            precond_ilu[:, j] = ilu.solve(ej)
+        precond_system = precond_ilu @ self._Tfine              # matriz pré-condicionada
+        precond_b = precond_ilu @ self._b                       # vetor dos carregamentos externos pré-condicionado
         posto_ilu = np.linalg.matrix_rank(precond_system)       # posto da matriz pré-condicionada
         cond_ilu = np.linalg.cond(precond_system)               # condicionamento da matriz de iteração
         av_ilu = la.eigvals(precond_system)                     # espectro da matriz de iteração
@@ -188,9 +194,15 @@ class SpectralAnalysisMethods:
     def Multiscale_ILUfac(self, args):
         # ----- MATRIZ Tfine pré-condicionador Multiescala + SUAVIZADOR ILU(0) -----
         nnod, upperTfine, lowerTfine, diagTfine = args
+        Tfine_sp = sp.csc_matrix(self._Tfine)
+        ilu = spla.spilu(Tfine_sp, drop_tol=0.0, fill_factor=1.0)
         precond_ilu = np.zeros((nnod, nnod))                        # pré-condicionador ILU
-        precond_system = precond_ilu @ self._Tfine                        # matriz pré-condicionada
-        precond_b = precond_ilu @ self._b                                 # vetor dos carregamentos externos pré-condicionado
+        for j in range(nnod):
+            ej = np.zeros(nnod)   
+            ej[j] = 1.0
+            precond_ilu[:, j] = ilu.solve(ej)
+        precond_system = precond_ilu @ self._Tfine                  # matriz pré-condicionada
+        precond_b = precond_ilu @ self._b                           # vetor dos carregamentos externos pré-condicionado
         cond_ilu = np.linalg.cond(precond_system)                   # condicionamento da matriz pré-condicionada
         av_ilu = la.eigvals(precond_system)                         # espectro da matriz pré-condicionada
         esp_ilu = np.max(np.abs(av_ilu))                            # raio espectral da matriz pré-condicionada
