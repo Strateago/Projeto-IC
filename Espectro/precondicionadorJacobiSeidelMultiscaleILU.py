@@ -8,7 +8,7 @@ import time
 
 # ----- Carregando o problema -----
 # Caso 1
-data = sio.loadmat("Problema_heterogeneo_buck_30x30.mat")
+data = sio.loadmat("Projeto-IC/arquivos/Problema_heterogeneo_buck_30x30.mat")
 # Caso 2
 #data = sio.loadmat("Problema_homogeneo_buck_40x40.mat")
 
@@ -72,11 +72,11 @@ diagTfine  = np.diag(np.diag(Tfine))    # matriz diagonal
 #diagTfine = Tfine - (upperTfine + lowerTfine)
 
 # ----- Selecionando o método que vai ser utilizado -----
-#method = 'Jacobi'
+method = 'Jacobi'
 #method = 'Seidel'
 #method = 'ILUfac'
 #method = 'Multiscale'
-method = 'MultiscaleILUfac'
+# method = 'MultiscaleILUfac'
 #method = 'MultiscaleJacobi'
 #method = 'MultiscaleSeidel'
 
