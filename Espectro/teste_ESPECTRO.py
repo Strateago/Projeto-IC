@@ -21,13 +21,14 @@ from MatrixSpectralAnalysis import MatrixSpectralAnalysis
 # OP = sp.csc_matrix((dataOP, (linesOP, colsOP)))
 # A = sp.csc_matrix((dataA, (linesA, colsA)))
 
-lines=np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/OP1_fMsRSB_lines.npy')
-cols=np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/OP1_fMsRSB_cols.npy')
-data=np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/OP1_fMsRSB_data.npy')
-primal=np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/primal_id_1_fMsRSB.npy')
-centroids=np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/centroids.npy')
-l,c,d=np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/A_lines.npy'),np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/A_cols.npy'),np.load('./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/A_data.npy')
-b=np.load("./SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira/b_vector.npy")
+data_path = './SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira'
+lines=np.load(f'{data_path}/OP1_fMsRSB_lines.npy')
+cols=np.load(f'{data_path}/OP1_fMsRSB_cols.npy')
+data=np.load(f'{data_path}/OP1_fMsRSB_data.npy')
+primal=np.load(f'{data_path}/primal_id_1_fMsRSB.npy')
+centroids=np.load(f'{data_path}/centroids.npy')
+l,c,d=np.load(f'{data_path}/A_lines.npy'),np.load(f'{data_path}/A_cols.npy'),np.load(f'{data_path}/A_data.npy')
+b=np.load(f"{data_path}/b_vector.npy")
 
 OP=sp.csc_matrix((data,(lines,cols)),shape=(lines.max()+1,cols.max()+1))
 OR=sp.csc_matrix((np.ones(len(primal)), (primal, np.arange(len(primal)))),shape=(primal.max()+1, len(primal)))
@@ -73,14 +74,14 @@ A=sp.csc_matrix((d,(l,c)),shape=(l.max()+1,c.max()+1))
 # plt.grid(True)
 # plt.show()
 
-# sa = MatrixSpectralAnalysis(A, OP, OR, b)
+sa = MatrixSpectralAnalysis(A, OP, OR, b)
 # print('verify')
 # sa.VerifyMatrixStructure()
 # print('preconditioned matrix analysis')
 # sa.PreconditionedMatrix_Analysis()
-# print('solve')
+print('solve')
 # methods: 'Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel'
-# method = 'Jacobi'
-# av_error, res = sa.Solve(method)
-# sa.PlotSpectre(method, av_error)
+method = 'Jacobi'
+av_error, res = sa.Solve(method)
+sa.PlotSpectre(method, av_error, "./Projeto-IC/Espectro/results")
 # sa.PlotResidues(method, res)

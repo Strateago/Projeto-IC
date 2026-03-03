@@ -72,7 +72,7 @@ class MatrixSpectralAnalysis:
         nnod = self._A.shape[0]                # número de graus de liberdade
         upperA = sp.tril(self._A, k=-1)    # matriz triangular inferior
         lowerA = sp.triu(self._A, k=1)     # matriz triangular superior
-        diagA  = self._A.diagonal()              # diagonal da matriz
+        diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
 
         args = (nnod, upperA, lowerA, diagA)
         if method in self._methods:
@@ -80,7 +80,8 @@ class MatrixSpectralAnalysis:
         else:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
-    def PlotSpectre(self, method, av_error_operator):
+        
+    def PlotSpectre(self, method, av_error_operator, save_path=None):
         plt.figure()
         x = np.arange(-1.0, 1.01, 0.01)
         x[-1] = 1.0
@@ -94,6 +95,8 @@ class MatrixSpectralAnalysis:
         plt.title(f'Espectro: pré-condicionador {method}')
         plt.axis('equal')
         plt.grid(True)
+        if save_path:
+            plt.savefig(f'{save_path}/Spectre_{method}')
         plt.show()
     
     def PlotResidues(self, method, residues):

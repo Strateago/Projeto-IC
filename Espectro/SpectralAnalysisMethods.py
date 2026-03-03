@@ -16,9 +16,9 @@ class SpectralAnalysisMethods:
     def Jacobi(self, args):
         # ----- MÉTODO DE JACOBI -----
         nnod, upperA, lowerA, diagA = args
-        precond_jacobi = 1/diagA                      # pré-condicionador diagonal
-        # precond_system = precond_jacobi @ self._A                 # matriz pré-condicionada
-        # precond_b = precond_jacobi @ self._b                          # vetor dos carregamentos externos pré-condicionado
+        precond_jacobi = 1/(diagA.diagonal())                                  # pré-condicionador diagonal
+        # precond_system = precond_jacobi @ self._A               # matriz pré-condicionada
+        # precond_b = precond_jacobi @ self._b                    # vetor dos carregamentos externos pré-condicionado
         # posto_jacobi = np.linalg.matrix_rank(precond_system)    # posto da matriz pré-condicionada
         # cond_jacobi = np.linalg.cond(precond_system)            # condicionamento da matriz de Jacobi
         # av_jacobi = la.eigvals(precond_system)                  # espectro da matriz de Jacobi
@@ -28,7 +28,7 @@ class SpectralAnalysisMethods:
 
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_jacobi @ self._A)
-        av_error_operator = spla.eigs(error_operator, k=100, return_eigenvectors=False)          # espectro da matriz de iteração
+        av_error_operator = spla.eigs(error_operator, k=nnod/2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
 
         # # Resolvendo o sistema linear
         # t0 = time.time()
@@ -64,46 +64,54 @@ class SpectralAnalysisMethods:
     def Seidel(self, args):
         # ----- MÉTODO DE GAUSS-SEIDEL -----
         nnod, upperA, lowerA, diagA = args
-        precond_seidel = la.inv(diagA + lowerA)         # pré-condicionador Gauss-Seidel
-        precond_system = precond_seidel @ self._A                 # matriz pré-condicionada
-        precond_b = precond_seidel @ self._b                          # vetor dos carregamentos externos pré-condicionado
-        posto_seidel = np.linalg.matrix_rank(precond_system)    # posto da matriz pré-condicionada
-        cond_seidel = np.linalg.cond(precond_system)            # condicionamento da matriz de Seidel
-        av_seidel = la.eigvals(precond_system)                  # espectro da matriz de Seidel
-        esp_seidel = np.max(np.abs(av_seidel))                  # raio espectral da matriz de Seidel
-        error_operator = np.eye(nnod) - (precond_seidel @ self._A)
-        av_error_operator = la.eigvals(error_operator)          # espectro da matriz de iteração
+        # precond_seidel = la.inv(diagA + lowerA)                 # pré-condicionador Gauss-Seidel
+    
+        # precond_system = precond_seidel @ self._A               # matriz pré-condicionada
+        # precond_b = precond_seidel @ self._b                    # vetor dos carregamentos externos pré-condicionado
+        # posto_seidel = np.linalg.matrix_rank(precond_system)    # posto da matriz pré-condicionada
+        # cond_seidel = np.linalg.cond(precond_system)            # condicionamento da matriz de Seidel
+        # av_seidel = la.eigvals(precond_system)                  # espectro da matriz de Seidel
+        # esp_seidel = np.max(np.abs(av_seidel))                  # raio espectral da matriz de Seidel
+        M = lowerA + diagA
+        def apply_G(x):
+            precond_seidel = spla.spsolve_triangular(M, self._A @ x, lower=True)
+            return x - precond_seidel
+        
+        error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
+        # error_operator = np.eye(nnod) - (precond_seidel @ self._A)
+        av_error_operator = spla.eigs(error_operator, k=nnod/2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
 
-        # Resolvendo o sistema linear
-        t0 = time.time()
+        # # Resolvendo o sistema linear
+        # t0 = time.time()
 
-        iter = 1
-        itermax = 5000
-        tolerancia = 1.0e-3
+        # iter = 1
+        # itermax = 5000
+        # tolerancia = 1.0e-3
 
-        xold = np.zeros(nnod)
-        xnew = xold.copy()
-        resold = self._b - self._A @ xold
-        delta = np.linalg.norm(resold)
-        deltaresold = [delta]
-        S = la.inv(diagA + lowerA)
+        # xold = np.zeros(nnod)
+        # xnew = xold.copy()
+        # resold = self._b - self._A @ xold
+        # delta = np.linalg.norm(resold)
+        # deltaresold = [delta]
+        # S = la.inv(diagA + lowerA)
 
-        while delta > tolerancia and iter < itermax:
-            xnew = xold + S @ resold
-            resold = self._b - self._A @ xnew
-            delta = np.linalg.norm(resold)
+        # while delta > tolerancia and iter < itermax:
+        #     xnew = xold + S @ resold
+        #     resold = self._b - self._A @ xnew
+        #     delta = np.linalg.norm(resold)
 
-            xold = xnew.copy()
-            iter += 1
-            deltaresold.append(delta)
+        #     xold = xnew.copy()
+        #     iter += 1
+        #     deltaresold.append(delta)
 
-        t_final = time.time() - t0
-        print(f"Tempo total (s): {t_final:.4f}")
-        print(f"Número de iterações: {iter}")
-        print(f"Resíduo final: {delta:.3e}")
+        # t_final = time.time() - t0
+        # print(f"Tempo total (s): {t_final:.4f}")
+        # print(f"Número de iterações: {iter}")
+        # print(f"Resíduo final: {delta:.3e}")
 
-        return av_error_operator, deltaresold
-
+        # return av_error_operator, deltaresold
+        return av_error_operator, None
+        
     def ILUfac(self, args):
         # ----- MATRIZ A COM SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
