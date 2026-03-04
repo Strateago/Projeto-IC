@@ -81,7 +81,7 @@ class MatrixSpectralAnalysis:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
         
-    def PlotSpectre(self, method, av_error_operator, save_path=None):
+    def PlotSpectre(self, method, av_error_operator, save_path=None, problem = ""):
         plt.figure()
         x = np.arange(-1.0, 1.01, 0.01)
         x[-1] = 1.0
@@ -96,7 +96,7 @@ class MatrixSpectralAnalysis:
         plt.axis('equal')
         plt.grid(True)
         if save_path:
-            plt.savefig(f'{save_path}/Spectre_{method}')
+            plt.savefig(f'{save_path}/Spectre_{method}_{problem}')
         plt.show()
     
     def PlotResidues(self, method, residues):

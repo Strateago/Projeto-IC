@@ -28,7 +28,7 @@ class SpectralAnalysisMethods:
 
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_jacobi @ self._A)
-        av_error_operator = spla.eigs(error_operator, k=nnod/2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        av_error_operator = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
 
         # # Resolvendo o sistema linear
         # t0 = time.time()
@@ -79,7 +79,7 @@ class SpectralAnalysisMethods:
         
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_seidel @ self._A)
-        av_error_operator = spla.eigs(error_operator, k=nnod/2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        av_error_operator = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
 
         # # Resolvendo o sistema linear
         # t0 = time.time()
