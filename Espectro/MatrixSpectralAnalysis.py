@@ -97,7 +97,7 @@ class MatrixSpectralAnalysis:
         plt.grid(True)
         if save_path:
             plt.savefig(f'{save_path}/Spectre_{method}_{problem}')
-        plt.show()
+        # plt.show()
     
     def PlotResidues(self, method, residues):
         plt.figure()

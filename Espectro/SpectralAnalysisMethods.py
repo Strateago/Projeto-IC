@@ -28,8 +28,19 @@ class SpectralAnalysisMethods:
 
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_jacobi @ self._A)
-        av_error_operator = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('Init 1')
+        # 500 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('ok\nInit 2')
+        # 500 menor magnitude
+        try:
+            SM = spla.eigs(error_operator, k=5000, which='SM', return_eigenvectors=False)
+        except:
+            print("Aviso: SM não convergiu.")
+            SM = np.array([])
+        print('ok')
 
+        av_error_operator = np.concatenate([BM, SM])
         # # Resolvendo o sistema linear
         # t0 = time.time()
 
@@ -79,7 +90,19 @@ class SpectralAnalysisMethods:
         
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_seidel @ self._A)
-        av_error_operator = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('Init 1')
+        # 500 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('ok\nInit 2')
+        # 500 menor magnitude
+        try:
+            SM = spla.eigs(error_operator, k=5000, which='SM', return_eigenvectors=False)
+        except:
+            print("Aviso: SM não convergiu.")
+            SM = np.array([])
+        print('ok')
+        
+        av_error_operator = np.concatenate([BM, SM])
 
         # # Resolvendo o sistema linear
         # t0 = time.time()
