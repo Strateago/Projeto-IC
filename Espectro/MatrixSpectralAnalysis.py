@@ -73,6 +73,7 @@ class MatrixSpectralAnalysis:
         upperA = sp.tril(self._A, k=-1)    # matriz triangular inferior
         lowerA = sp.triu(self._A, k=1)     # matriz triangular superior
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
+        print(nnod)
 
         args = (nnod, upperA, lowerA, diagA)
         if method in self._methods:

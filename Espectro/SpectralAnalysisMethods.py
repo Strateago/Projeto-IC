@@ -30,11 +30,11 @@ class SpectralAnalysisMethods:
         # error_operator = np.eye(nnod) - (precond_jacobi @ self._A)
         print('Init 1')
         # 500 maior magnitude
-        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        BM = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
         print('ok\nInit 2')
         # 500 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=5000, which='SM', return_eigenvectors=False)
+            SM = spla.eigs(error_operator, k=nnod//2, which='SM', return_eigenvectors=False)
         except:
             print("Aviso: SM não convergiu.")
             SM = np.array([])
@@ -91,12 +91,12 @@ class SpectralAnalysisMethods:
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_seidel @ self._A)
         print('Init 1')
-        # 500 maior magnitude
-        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        # nnod//2 maior magnitude
+        BM = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
         print('ok\nInit 2')
-        # 500 menor magnitude
+        # nnod//2 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=5000, which='SM', return_eigenvectors=False)
+            SM = spla.eigs(error_operator, k=nnod//2, which='SM', return_eigenvectors=False)
         except:
             print("Aviso: SM não convergiu.")
             SM = np.array([])
@@ -138,7 +138,7 @@ class SpectralAnalysisMethods:
     def ILUfac(self, args):
         # ----- MATRIZ A COM SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
-        ilu = spla.spilu(self._A, drop_tol=0.0, fill_factor=1.0)
+        ilu = spla.spilu(self._A)
         # precond_ilu = np.zeros((nnod, nnod))                    # pré-condicionador ILU
         # for j in range(nnod):
         #     ej = np.zeros(nnod)   
@@ -160,17 +160,18 @@ class SpectralAnalysisMethods:
         # error_operator = np.eye(nnod) - (precond_seidel @ self._A)
         print('Init 1')
         # 500 maior magnitude
-        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        BM = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
         print('ok\nInit 2')
         # 500 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=5000, which='SM', return_eigenvectors=False)
+            SM = spla.eigs(error_operator, k=nnod//2, which='SM', return_eigenvectors=False)
         except:
             print("Aviso: SM não convergiu.")
             SM = np.array([])
         print('ok')
         
         av_error_operator = np.concatenate([BM, SM])
+        # av_error_operator = BM
 
         # # Resolvendo o sistema linear
         # t0 = time.time()

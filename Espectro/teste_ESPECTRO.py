@@ -85,7 +85,7 @@ sa = MatrixSpectralAnalysis(A, OP, OR, b)
 # sa.PreconditionedMatrix_Analysis()
 print('solve')
 # methods: 'Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel'
-method = 'ILUfac'
+method = 'Jacobi'
 av_error, res = sa.Solve(method)
 print(len(av_error))
 sa.PlotSpectre(method, av_error, "./Projeto-IC/Espectro/results", problem)
