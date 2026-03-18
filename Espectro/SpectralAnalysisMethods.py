@@ -29,12 +29,12 @@ class SpectralAnalysisMethods:
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_jacobi @ self._A)
         print('Init 1')
-        # 500 maior magnitude
-        BM = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        # 5000 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
         print('ok\nInit 2')
-        # 500 menor magnitude
+        # 5000 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=nnod//2, which='SM', return_eigenvectors=False)
+            SM = spla.eigs(error_operator, k=5000, which='SM', return_eigenvectors=False)
         except:
             print("Aviso: SM não convergiu.")
             SM = np.array([])
@@ -91,12 +91,12 @@ class SpectralAnalysisMethods:
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # error_operator = np.eye(nnod) - (precond_seidel @ self._A)
         print('Init 1')
-        # nnod//2 maior magnitude
-        BM = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        # 5000 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
         print('ok\nInit 2')
-        # nnod//2 menor magnitude
+        # 5000 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=nnod//2, which='SM', return_eigenvectors=False)
+            SM = spla.eigs(error_operator, k=5000, which='SM', return_eigenvectors=False)
         except:
             print("Aviso: SM não convergiu.")
             SM = np.array([])
@@ -138,7 +138,7 @@ class SpectralAnalysisMethods:
     def ILUfac(self, args):
         # ----- MATRIZ A COM SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
-        ilu = spla.spilu(self._A)
+        ilu = spla.spilu(self._A, fill_factor=15)
         # precond_ilu = np.zeros((nnod, nnod))                    # pré-condicionador ILU
         # for j in range(nnod):
         #     ej = np.zeros(nnod)   
@@ -155,16 +155,15 @@ class SpectralAnalysisMethods:
             precond_step = ilu.solve(Ax.astype(np.float64))
             return x - precond_step
         # error_operator = np.eye(nnod) - precond_system
-        # av_error_operator = la.eigvals(error_operator)          # espectro da matriz de iteração
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
-        # error_operator = np.eye(nnod) - (precond_seidel @ self._A)
+        # av_error_operator = la.eigvals(error_operator)          # espectro da matriz de iteração
         print('Init 1')
-        # 500 maior magnitude
-        BM = spla.eigs(error_operator, k=nnod//2, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        # 5000 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
         print('ok\nInit 2')
-        # 500 menor magnitude
+        # 5000 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=nnod//2, which='SM', return_eigenvectors=False)
+            SM = spla.eigs(error_operator, k=5000 , which='SM', return_eigenvectors=False)
         except:
             print("Aviso: SM não convergiu.")
             SM = np.array([])
@@ -203,48 +202,69 @@ class SpectralAnalysisMethods:
     def Multiscale(self, args):
         # ----- MATRIZ A com pré-condicionador Multiescala -----
         nnod, upperA, lowerA, diagA = args
-        precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR                  # matriz de pré-condicionamento M^-1 Multiescala
-        precond_system = precond_multiscale @ self._A                             # matriz pré-condicionada
-        precond_b = precond_multiscale @ self._b                                      # vetor dos carregamentos externos pré-condicionado
-        posto_A = np.linalg.matrix_rank(self._A)                              # posto da matriz de transmissibilidade
-        posto_precond_multiscale = np.linalg.matrix_rank(precond_multiscale)    # posto do pré-condicionador
-        posto_multiscale = np.linalg.matrix_rank(precond_system)                # posto da matriz pré-condicionada
-        cond_A = np.linalg.cond(self._A)                                      # condicionamento da matriz de transmissibilidade
-        cond_multiscale = np.linalg.cond(precond_system)                        # condicionamento da matriz pré-condicionada
-        av_multiscale = la.eigvals(precond_system)                              # espectro da matriz pré-condicionada
-        esp_multiscale = np.max(np.abs(av_multiscale))                          # raio espectral da matriz pré-condicionada
-        av_error_operator = la.eigvals(np.eye(nnod) - precond_system)           # espectro da matriz de iteração
-        espec_error_operator = np.max(np.abs(av_error_operator))                # raio espectral do operador de propagação de erro
+        # precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR                  # matriz de pré-condicionamento M^-1 Multiescala
+        # precond_system = precond_multiscale @ self._A                                 # matriz pré-condicionada
+        # precond_b = precond_multiscale @ self._b                                      # vetor dos carregamentos externos pré-condicionado
+        # posto_A = np.linalg.matrix_rank(self._A)                                      # posto da matriz de transmissibilidade
+        # posto_precond_multiscale = np.linalg.matrix_rank(precond_multiscale)          # posto do pré-condicionador
+        # posto_multiscale = np.linalg.matrix_rank(precond_system)                      # posto da matriz pré-condicionada
+        # cond_A = np.linalg.cond(self._A)                                              # condicionamento da matriz de transmissibilidade
+        # cond_multiscale = np.linalg.cond(precond_system)                              # condicionamento da matriz pré-condicionada
+        # av_multiscale = la.eigvals(precond_system)                                    # espectro da matriz pré-condicionada
+        # esp_multiscale = np.max(np.abs(av_multiscale))                                # raio espectral da matriz pré-condicionada
+        RAP = self._OR @ self._A @ self._OP
+        RA = self._OR @ self._A
+        solver = spla.factorized(RAP)
+        def apply_G(x):
+            return x - self._OP @ solver(RA @ x)
+        # av_error_operator = la.eigvals(np.eye(nnod) - precond_system)                 # espectro da matriz de iteração
+        error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
+        # espec_error_operator = np.max(np.abs(av_error_operator))                      # raio espectral do operador de propagação de erro
+        print('Init 1')
+        # 5000 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('ok\nInit 2')
+        # 5000 menor magnitude
+        try:
+            SM = spla.eigs(error_operator, k=5000 , which='SM', return_eigenvectors=False)
+        except:
+            print("Aviso: SM não convergiu.")
+            SM = np.array([])
+        print('ok')
+        
+        av_error_operator = np.concatenate([BM, SM])
 
-        # Resolvendo o sistema linear
-        t0 = time.time()
 
-        iter = 1
-        itermax = 5000
-        tolerancia = 1.0e-3
+        # # Resolvendo o sistema linear
+        # t0 = time.time()
 
-        xold = np.zeros(nnod)
-        xnew = xold.copy()
-        resold = self._b - self._A @ xold
-        delta = np.linalg.norm(resold)
-        deltaresold = [delta]
-        S = precond_multiscale
+        # iter = 1
+        # itermax = 5000
+        # tolerancia = 1.0e-3
 
-        while delta > tolerancia and iter < itermax:
-            xnew = xold + S @ resold
-            resold = self._b - self._A @ xnew
-            delta = np.linalg.norm(resold)
+        # xold = np.zeros(nnod)
+        # xnew = xold.copy()
+        # resold = self._b - self._A @ xold
+        # delta = np.linalg.norm(resold)
+        # deltaresold = [delta]
+        # S = precond_multiscale
 
-            xold = xnew.copy()
-            iter += 1
-            deltaresold.append(delta)
+        # while delta > tolerancia and iter < itermax:
+        #     xnew = xold + S @ resold
+        #     resold = self._b - self._A @ xnew
+        #     delta = np.linalg.norm(resold)
 
-        t_final = time.time() - t0
-        print(f"Tempo total (s): {t_final:.4f}")
-        print(f"Número de iterações: {iter}")
-        print(f"Resíduo final: {delta:.3e}")
+        #     xold = xnew.copy()
+        #     iter += 1
+        #     deltaresold.append(delta)
 
-        return av_error_operator, deltaresold
+        # t_final = time.time() - t0
+        # print(f"Tempo total (s): {t_final:.4f}")
+        # print(f"Número de iterações: {iter}")
+        # print(f"Resíduo final: {delta:.3e}")
+
+        # return av_error_operator, deltaresold
+        return av_error_operator, None
 
     def Multiscale_ILUfac(self, args):
         # ----- MATRIZ A pré-condicionador Multiescala + SUAVIZADOR ILU(0) -----

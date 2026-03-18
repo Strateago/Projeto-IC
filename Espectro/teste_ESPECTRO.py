@@ -4,7 +4,7 @@ import scipy.sparse.linalg as spla
 import matplotlib.pyplot as plt
 from MatrixSpectralAnalysis import MatrixSpectralAnalysis
 
-problem = "Joao"  # Barreira ou Joao
+problem = "Barreira"  # Barreira ou Joao
 
 if problem != 'Barreira':
     data_path = './Projeto-IC/Espectro/dados'
@@ -38,45 +38,8 @@ else:
     OR=sp.csc_matrix((np.ones(len(primal)), (primal, np.arange(len(primal)))),shape=(primal.max()+1, len(primal)))
     A=sp.csc_matrix((d,(l,c)),shape=(l.max()+1,c.max()+1))
 
-# n = A.shape[0]
-# # M1_A=OP*spla.spsolve(RAP,RA)
-# # I = sp.identity(n) - M1_A
-
-
-# RAP = OR @ A @ OP
-# RA = OR @ A
-# solver = spla.factorized(RAP)
-# def apply_G(x):
-#     return x - OP @ solver(RA @ x)
-
-# I = spla.LinearOperator((A.shape[0], A.shape[0]), matvec=apply_G)
-
-# # Maior autovalor em magnitude (Largest Magnitude)
-# max_val = spla.eigs(I, k=10, which='LM', return_eigenvectors=False)
-
-# # Menor autovalor em magnitude (Smallest Magnitude)
-# # O parâmetro sigma força o uso do modo shift-invert, que converge muito melhor
-# min_val = spla.eigs(I, k=10, sigma=0.001, which='LM', return_eigenvectors=False)
-
-# vals = np.concatenate((max_val, min_val))
-
-# print(f"Maior: {max_val[0]}, Menor: {min_val[0]}")
-# print(vals)
-
-# plt.figure()
-# x = np.arange(-1.0, 1.01, 0.01)
-# x[-1] = 1.0
-# z = np.sqrt(1 - x**2)
-# y = -np.sqrt(1 - x**2)
-# plt.plot(x, z, 'b')
-# plt.plot(x, y, 'b')
-# plt.plot(np.real(vals), np.imag(vals), '*r', label='Autovalores')
-# plt.xlabel('Re(lambda)')
-# plt.ylabel('Imag(lambda)')
-# plt.title(f'Espectro')
-# plt.axis('equal')
-# plt.grid(True)
-# plt.show()
+x = spla.spsolve(A, b)
+print('fez')
 
 sa = MatrixSpectralAnalysis(A, OP, OR, b)
 # print('verify')
@@ -85,8 +48,9 @@ sa = MatrixSpectralAnalysis(A, OP, OR, b)
 # sa.PreconditionedMatrix_Analysis()
 print('solve')
 # methods: 'Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel'
-method = 'Jacobi'
+method = 'Multiscale'
 av_error, res = sa.Solve(method)
 print(len(av_error))
+print(av_error[:100])
 sa.PlotSpectre(method, av_error, "./Projeto-IC/Espectro/results", problem)
 # sa.PlotResidues(method, res)
