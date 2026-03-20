@@ -4,7 +4,7 @@ import scipy.sparse.linalg as spla
 import matplotlib.pyplot as plt
 from MatrixSpectralAnalysis import MatrixSpectralAnalysis
 
-problem = "Barreira"  # Barreira ou Joao
+problem = "Joao"  # Barreira ou Joao
 
 if problem != 'Barreira':
     data_path = './Projeto-IC/Espectro/dados'
@@ -38,9 +38,6 @@ else:
     OR=sp.csc_matrix((np.ones(len(primal)), (primal, np.arange(len(primal)))),shape=(primal.max()+1, len(primal)))
     A=sp.csc_matrix((d,(l,c)),shape=(l.max()+1,c.max()+1))
 
-x = spla.spsolve(A, b)
-print('fez')
-
 sa = MatrixSpectralAnalysis(A, OP, OR, b)
 # print('verify')
 # sa.VerifyMatrixStructure()
@@ -48,7 +45,7 @@ sa = MatrixSpectralAnalysis(A, OP, OR, b)
 # sa.PreconditionedMatrix_Analysis()
 print('solve')
 # methods: 'Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel'
-method = 'Multiscale'
+method = 'ILUfac'
 av_error, res = sa.Solve(method)
 print(len(av_error))
 print(av_error[:100])

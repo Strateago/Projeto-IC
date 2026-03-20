@@ -138,7 +138,7 @@ class SpectralAnalysisMethods:
     def ILUfac(self, args):
         # ----- MATRIZ A COM SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
-        ilu = spla.spilu(self._A, fill_factor=15)
+        ilu = spla.spilu(self._A, fill_factor=1)
         # precond_ilu = np.zeros((nnod, nnod))                    # pré-condicionador ILU
         # for j in range(nnod):
         #     ej = np.zeros(nnod)   
@@ -267,73 +267,103 @@ class SpectralAnalysisMethods:
         return av_error_operator, None
 
     def Multiscale_ILUfac(self, args):
-        # ----- MATRIZ A pré-condicionador Multiescala + SUAVIZADOR ILU(0) -----
+        # # ----- MATRIZ A pré-condicionador Multiescala + SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
-        A_sp = sp.csc_matrix(self._A)
-        ilu = spla.spilu(A_sp, drop_tol=0.0, fill_factor=1.0)
-        precond_ilu = np.zeros((nnod, nnod))                        # pré-condicionador ILU
-        for j in range(nnod):
-            ej = np.zeros(nnod)   
-            ej[j] = 1.0
-            precond_ilu[:, j] = ilu.solve(ej)
-        precond_system = precond_ilu @ self._A                  # matriz pré-condicionada
-        precond_b = precond_ilu @ self._b                           # vetor dos carregamentos externos pré-condicionado
-        cond_ilu = np.linalg.cond(precond_system)                   # condicionamento da matriz pré-condicionada
-        av_ilu = la.eigvals(precond_system)                         # espectro da matriz pré-condicionada
-        esp_ilu = np.max(np.abs(av_ilu))                            # raio espectral da matriz pré-condicionada
-        error_operator = np.eye(nnod) - precond_system
-        av_error_operator = la.eigvals(error_operator)              # espectro da matriz de iteração
-        espec_error_operator = np.max(np.abs(av_error_operator))    # raio espectral da matriz pré-condicionada
+        # A_sp = sp.csc_matrix(self._A)
+        # ilu = spla.spilu(A_sp, drop_tol=0.0, fill_factor=1.0)
+        # precond_ilu = np.zeros((nnod, nnod))                        # pré-condicionador ILU
+        # for j in range(nnod):
+        #     ej = np.zeros(nnod)   
+        #     ej[j] = 1.0
+        #     precond_ilu[:, j] = ilu.solve(ej)
+        # precond_system = precond_ilu @ self._A                  # matriz pré-condicionada
+        # precond_b = precond_ilu @ self._b                           # vetor dos carregamentos externos pré-condicionado
+        # cond_ilu = np.linalg.cond(precond_system)                   # condicionamento da matriz pré-condicionada
+        # av_ilu = la.eigvals(precond_system)                         # espectro da matriz pré-condicionada
+        # esp_ilu = np.max(np.abs(av_ilu))                            # raio espectral da matriz pré-condicionada
+        # error_operator = np.eye(nnod) - precond_system
+        # av_error_operator = la.eigvals(error_operator)              # espectro da matriz de iteração
+        # espec_error_operator = np.max(np.abs(av_error_operator))    # raio espectral da matriz pré-condicionada
+        ilu = spla.spilu(self._A, fill_factor=1)
+        def precond_ilu(x): # Aproximação de A-1 ilu
+            precond_step = ilu.solve(x.astype(np.float64))
+            return precond_step
 
-        precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR                  # matriz de pré-condicionamento M^-1 Multiescala
-        precond_system = precond_multiscale @ self._A                             # matriz pré-condicionada
-        cond_multiscale = np.linalg.cond(precond_system)                        # condicionamento da matriz Mmulti
-        av_multiscale = la.eigvals(precond_system)                              # espectro da matriz Mmulti
-        esp_multiscale = np.max(np.abs(av_multiscale))                          # raio espectral da matriz Mmulti
-        av_error_operator = la.eigvals(np.eye(nnod) - precond_system)           # espectro da matriz A
-        espec_error_operator = np.max(np.abs(av_error_operator))                # raio espectral do operador de propagação de erro
+        # precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR                  # matriz de pré-condicionamento M^-1 Multiescala
+        # precond_system = precond_multiscale @ self._A                             # matriz pré-condicionada
+        # cond_multiscale = np.linalg.cond(precond_system)                        # condicionamento da matriz Mmulti
+        # av_multiscale = la.eigvals(precond_system)                              # espectro da matriz Mmulti
+        # esp_multiscale = np.max(np.abs(av_multiscale))                          # raio espectral da matriz Mmulti
+        # av_error_operator = la.eigvals(np.eye(nnod) - precond_system)           # espectro da matriz A
+        # espec_error_operator = np.max(np.abs(av_error_operator))                # raio espectral do operador de propagação de erro
+        RAP = self._OR @ self._A @ self._OP
+        solver = spla.factorized(RAP)
+        def precond_multiscale(x): # Aproximação de A-1 multiscale
+            return self._OP @ solver(self._OR @ x)
+        
+        # precond_multiscaleilu = (precond_multiscale + precond_ilu - self._A @ precond_multiscale @ precond_ilu)
+        # precond_system_milu = precond_multiscaleilu @ self._A
+        # av_precond_multiscaleilu = la.eigvals(precond_system_milu)
+        # espec_precond_multiscaleilu = np.max(np.abs(av_precond_multiscaleilu))
+        # posto_multiscaleilu = np.linalg.matrix_rank(precond_system_milu)
+        # cond_multiscale_ilu = np.linalg.cond(precond_system_milu)
+        # av_error_operator_milu = la.eigvals(np.eye(nnod) - precond_system_milu)
+        # espec_error_operator_milu = np.max(np.abs(av_error_operator_milu))
 
-        precond_multiscaleilu = (precond_multiscale + precond_ilu - self._A @ precond_multiscale @ precond_ilu)
-        precond_system_milu = precond_multiscaleilu @ self._A
-        av_precond_multiscaleilu = la.eigvals(precond_system_milu)
-        espec_precond_multiscaleilu = np.max(np.abs(av_precond_multiscaleilu))
-        posto_multiscaleilu = np.linalg.matrix_rank(precond_system_milu)
-        cond_multiscale_ilu = np.linalg.cond(precond_system_milu)
-        av_error_operator_milu = la.eigvals(np.eye(nnod) - precond_system_milu)
-        espec_error_operator_milu = np.max(np.abs(av_error_operator_milu))
+        def apply_G(x):
+            Ax = self._A @ x
+            milu_Ax = (precond_multiscale(Ax) + precond_ilu(Ax) - precond_multiscale(self._A @ precond_ilu(Ax))) # precond_milu @ Ax
+            return x - milu_Ax
+        
+        error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
+        # espec_error_operator = np.max(np.abs(av_error_operator))                      # raio espectral do operador de propagação de erro
+        print('Init 1')
+        # 5000 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('ok\nInit 2')
+        # 5000 menor magnitude
+        try:
+            SM = spla.eigs(error_operator, k=5000 , which='SM', return_eigenvectors=False)
+        except:
+            print("Aviso: SM não convergiu.")
+            SM = np.array([])
+        print('ok')
+        
+        av_error_operator = np.concatenate([BM, SM])
 
-        # Resolvendo o sistema linear
-        t0 = time.time()
+        # # Resolvendo o sistema linear
+        # t0 = time.time()
 
-        iter = 1
-        itermax = 1000
-        tolerancia = 1.0e-3
+        # iter = 1
+        # itermax = 1000
+        # tolerancia = 1.0e-3
 
-        xold = np.zeros(nnod)
-        xnew = xold.copy()
-        resold1 = self._b - self._A @ xold
-        delta = np.linalg.norm(resold1)
-        deltaresold = [delta]
-        S1 = precond_multiscale
-        S2 = precond_ilu
+        # xold = np.zeros(nnod)
+        # xnew = xold.copy()
+        # resold1 = self._b - self._A @ xold
+        # delta = np.linalg.norm(resold1)
+        # deltaresold = [delta]
+        # S1 = precond_multiscale
+        # S2 = precond_ilu
 
-        while delta > tolerancia and iter < itermax:
-            xmed = xold + S1 @ resold1
-            resold2 = self._b - self._A @ xnew
-            xnew = xmed + S2 @ resold2
-            resold1 = self._b - self._A @ xnew
-            delta = np.linalg.norm(resold1)
+        # while delta > tolerancia and iter < itermax:
+        #     xmed = xold + S1 @ resold1
+        #     resold2 = self._b - self._A @ xnew
+        #     xnew = xmed + S2 @ resold2
+        #     resold1 = self._b - self._A @ xnew
+        #     delta = np.linalg.norm(resold1)
 
-            xold = xnew.copy()
-            iter += 1
-            deltaresold.append(delta)
+        #     xold = xnew.copy()
+        #     iter += 1
+        #     deltaresold.append(delta)
 
-        t_final = time.time() - t0
-        print(f"Tempo total (s): {t_final:.4f}")
-        print(f"Número de iterações: {iter}")
-        print(f"Resíduo final: {delta:.3e}")
+        # t_final = time.time() - t0
+        # print(f"Tempo total (s): {t_final:.4f}")
+        # print(f"Número de iterações: {iter}")
+        # print(f"Resíduo final: {delta:.3e}")
 
-        return av_error_operator_milu, deltaresold
+        # return av_error_operator_milu, deltaresold
+        return av_error_operator, None
 
     def Multiscale_Jacobi(self, args):
         # ----- MATRIZ A pré-condicionador Multiescala + Jacobi -----
