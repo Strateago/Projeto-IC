@@ -286,8 +286,7 @@ class SpectralAnalysisMethods:
         # espec_error_operator = np.max(np.abs(av_error_operator))    # raio espectral da matriz pré-condicionada
         ilu = spla.spilu(self._A, fill_factor=1)
         def precond_ilu(x): # Aproximação de A-1 ilu
-            precond_step = ilu.solve(x.astype(np.float64))
-            return precond_step
+            return ilu.solve(x.astype(np.float64))
 
         # precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR                  # matriz de pré-condicionamento M^-1 Multiescala
         # precond_system = precond_multiscale @ self._A                             # matriz pré-condicionada
@@ -368,111 +367,166 @@ class SpectralAnalysisMethods:
     def Multiscale_Jacobi(self, args):
         # ----- MATRIZ A pré-condicionador Multiescala + Jacobi -----
         nnod, upperA, lowerA, diagA = args
-        precond_jacobi = la.inv(diagA)                      # pré-condicionador diagonal
-        precond_system = precond_jacobi @ self._A                 # matriz pré-condicionada
-        precond_b = precond_jacobi @ self._b                          # vetor dos carregamentos externos pré-condicionado
-        posto_jacobi = np.linalg.matrix_rank(precond_system)    # posto da matriz pré-condicionada
-        cond_jacobi = np.linalg.cond(precond_system)            # condicionamento da matriz de Jacobi
-        av_jacobi = la.eigvals(precond_system)                  # espectro da matriz de Jacobi
-        esp_jacobi = np.max(np.abs(av_jacobi))                  # raio espectral da matriz de Jacobi
+        # precond_jacobi = la.inv(diagA)                      # pré-condicionador diagonal
+        # precond_system = precond_jacobi @ self._A                 # matriz pré-condicionada
+        # precond_b = precond_jacobi @ self._b                          # vetor dos carregamentos externos pré-condicionado
+        # posto_jacobi = np.linalg.matrix_rank(precond_system)    # posto da matriz pré-condicionada
+        # cond_jacobi = np.linalg.cond(precond_system)            # condicionamento da matriz de Jacobi
+        # av_jacobi = la.eigvals(precond_system)                  # espectro da matriz de Jacobi
+        # esp_jacobi = np.max(np.abs(av_jacobi))                  # raio espectral da matriz de Jacobi
+        def precond_jacobi(x):
+            return spla.spsolve(diagA, x)
         
-        precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR                  # matriz de pré-condicionamento M^-1 Multiescala
-        precond_system = precond_multiscale @ self._A                             # matriz pré-condicionada
-        precond_b = precond_multiscale @ self._b                                      # vetor dos carregamentos externos pré-condicionado
-        cond_multiscale = np.linalg.cond(precond_system)                        # condicionamento da matriz Mmulti
-        av_multiscale = la.eigvals(precond_system)                              # espectro da matriz Mmulti
-        esp_multiscale = np.max(np.abs(av_multiscale))                          # raio espectral da matriz Mmulti
+        # precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR                  # matriz de pré-condicionamento M^-1 Multiescala
+        # precond_system = precond_multiscale @ self._A                             # matriz pré-condicionada
+        # precond_b = precond_multiscale @ self._b                                      # vetor dos carregamentos externos pré-condicionado
+        # cond_multiscale = np.linalg.cond(precond_system)                        # condicionamento da matriz Mmulti
+        # av_multiscale = la.eigvals(precond_system)                              # espectro da matriz Mmulti
+        # esp_multiscale = np.max(np.abs(av_multiscale))                          # raio espectral da matriz Mmulti
+        RAP = self._OR @ self._A @ self._OP
+        solver = spla.factorized(RAP)
+        def precond_multiscale(x): # Aproximação de A-1 multiscale
+            return self._OP @ solver(self._OR @ x)
 
-        precond_multiscalejacobi = (precond_multiscale + precond_jacobi - self._A @ precond_multiscale @ precond_jacobi)
-        precond_system_mjacobi = precond_multiscalejacobi @ self._A
-        cond_multiscale_jacobi = np.linalg.cond(precond_system_mjacobi)
-        av_error_operator_mjacobi = la.eigvals(np.eye(nnod) - precond_system_mjacobi)
+        # precond_multiscalejacobi = (precond_multiscale + precond_jacobi - self._A @ precond_multiscale @ precond_jacobi)
+        # precond_system_mjacobi = precond_multiscalejacobi @ self._A
+        # cond_multiscale_jacobi = np.linalg.cond(precond_system_mjacobi)
+        # av_error_operator_mjacobi = la.eigvals(np.eye(nnod) - precond_system_mjacobi)
+        def apply_G(x):
+            Ax = self._A @ x
+            multiscale_jacobi_Ax = (precond_multiscale(Ax) + precond_jacobi(Ax) - precond_multiscale(self._A @ precond_jacobi(Ax))) # precond_multiscale_jacobi @ Ax
+            return x - multiscale_jacobi_Ax
 
-        # Resolvendo o sistema linear
-        t0 = time.time()
+        error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
+        # espec_error_operator = np.max(np.abs(av_error_operator))                      # raio espectral do operador de propagação de erro
+        print('Init 1')
+        # 5000 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('ok\nInit 2')
+        # 5000 menor magnitude
+        try:
+            SM = spla.eigs(error_operator, k=5000 , which='SM', return_eigenvectors=False)
+        except:
+            print("Aviso: SM não convergiu.")
+            SM = np.array([])
+        print('ok')
+        
+        av_error_operator = np.concatenate([BM, SM])
 
-        iter = 1
-        itermax = 1000
-        tolerancia = 1.0e-3
+        # # Resolvendo o sistema linear
+        # t0 = time.time()
 
-        xold = np.zeros(nnod)
-        xnew = xold.copy()
-        resold1 = self._b - self._A @ xold
-        delta = np.linalg.norm(resold1)
-        deltaresold = [delta]
-        S1 = precond_multiscale
-        S2 = precond_jacobi
+        # iter = 1
+        # itermax = 1000
+        # tolerancia = 1.0e-3
 
-        while delta > tolerancia and iter < itermax:
-            xmed = xold + S1 @ resold1
-            resold2 = self._b - self._A @ xnew
-            xnew = xmed + S2 @ resold2
-            resold1 = self._b - self._A @ xnew
-            delta = np.linalg.norm(resold1)
+        # xold = np.zeros(nnod)
+        # xnew = xold.copy()
+        # resold1 = self._b - self._A @ xold
+        # delta = np.linalg.norm(resold1)
+        # deltaresold = [delta]
+        # S1 = precond_multiscale
+        # S2 = precond_jacobi
 
-            xold = xnew.copy()
-            iter += 1
-            deltaresold.append(delta)
+        # while delta > tolerancia and iter < itermax:
+        #     xmed = xold + S1 @ resold1
+        #     resold2 = self._b - self._A @ xnew
+        #     xnew = xmed + S2 @ resold2
+        #     resold1 = self._b - self._A @ xnew
+        #     delta = np.linalg.norm(resold1)
 
-        t_final = time.time() - t0
-        print(f"Tempo total (s): {t_final:.4f}")
-        print(f"Número de iterações: {iter}")
-        print(f"Resíduo final: {delta:.3e}")
+        #     xold = xnew.copy()
+        #     iter += 1
+        #     deltaresold.append(delta)
 
-        return av_error_operator_mjacobi, deltaresold
+        # t_final = time.time() - t0
+        # print(f"Tempo total (s): {t_final:.4f}")
+        # print(f"Número de iterações: {iter}")
+        # print(f"Resíduo final: {delta:.3e}")
+
+        # return av_error_operator_mjacobi, deltaresold
+        return av_error_operator, None
 
     def Multiscale_Seidel(self, args):
         nnod, upperA, lowerA, diagA = args
-        precond_seidel = la.inv(diagA + lowerA)         # pré-condicionador Gauss-Seidel
-        precond_system = precond_seidel @ self._A                 # matriz pré-condicionada
-        precond_b = precond_seidel @ self._b                          # vetor dos carregamentos externos pré-condicionado
-        posto_seidel = np.linalg.matrix_rank(precond_system)    # posto da matriz pré-condicionada
-        cond_seidel = np.linalg.cond(precond_system)            # condicionamento da matriz de Seidel
-        av_seidel = la.eigvals(precond_system)                  # espectro da matriz de Seidel
-        esp_seidel = np.max(np.abs(av_seidel))                  # raio espectral da matriz de Seidel
+        # precond_seidel = la.inv(diagA + lowerA)         # pré-condicionador Gauss-Seidel
+        # precond_system = precond_seidel @ self._A                 # matriz pré-condicionada
+        # precond_b = precond_seidel @ self._b                          # vetor dos carregamentos externos pré-condicionado
+        # posto_seidel = np.linalg.matrix_rank(precond_system)    # posto da matriz pré-condicionada
+        # cond_seidel = np.linalg.cond(precond_system)            # condicionamento da matriz de Seidel
+        # av_seidel = la.eigvals(precond_system)                  # espectro da matriz de Seidel
+        # esp_seidel = np.max(np.abs(av_seidel))                  # raio espectral da matriz de Seidel
+        M = lowerA + diagA
+        def precond_seidel(x):
+            return spla.spsolve_triangular(M, x, lower=True)
 
-        precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR              # matriz de pré-condicionamento M^-1 Multiescala
-        precond_system = precond_multiscale @ self._A                         # matriz pré-condicionada
-        precond_b = precond_multiscale @ self._b                                  # vetor dos carregamentos externos pré-condicionado
-        cond_multiscale = np.linalg.cond(precond_system)                    # condicionamento da matriz Mmulti
-        av_multiscale = la.eigvals(precond_system)                          # espectro da matriz Mmulti
-        esp_multiscale = np.max(np.abs(av_multiscale))                      # raio espectral da matriz Mmulti
+        # precond_multiscale = self._OP @ la.inv(self._OR @ self._A @ self._OP) @ self._OR              # matriz de pré-condicionamento M^-1 Multiescala
+        # precond_system = precond_multiscale @ self._A                         # matriz pré-condicionada
+        # precond_b = precond_multiscale @ self._b                                  # vetor dos carregamentos externos pré-condicionado
+        # cond_multiscale = np.linalg.cond(precond_system)                    # condicionamento da matriz Mmulti
+        # av_multiscale = la.eigvals(precond_system)                          # espectro da matriz Mmulti
+        # esp_multiscale = np.max(np.abs(av_multiscale))                      # raio espectral da matriz Mmulti
+        RAP = self._OR @ self._A @ self._OP
+        solver = spla.factorized(RAP)
+        def precond_multiscale(x): # Aproximação de A-1 multiscale
+            return self._OP @ solver(self._OR @ x)
 
-        precond_multiscaleseidel = (precond_multiscale + precond_seidel - self._A @ precond_multiscale @ precond_seidel)
-        precond_system_mseidel = precond_multiscaleseidel @ self._A
-        cond_multiscale_seidel = np.linalg.cond(precond_system_mseidel)
-        posto_multiscaleseidel = np.linalg.matrix_rank(precond_system_mseidel)
-        av_error_operator = la.eigvals(np.eye(nnod) - precond_system_mseidel)
+        # precond_multiscaleseidel = (precond_multiscale + precond_seidel - self._A @ precond_multiscale @ precond_seidel)
+        # precond_system_mseidel = precond_multiscaleseidel @ self._A
+        # cond_multiscale_seidel = np.linalg.cond(precond_system_mseidel)
+        # posto_multiscaleseidel = np.linalg.matrix_rank(precond_system_mseidel)
+        # av_error_operator = la.eigvals(np.eye(nnod) - precond_system_mseidel)
+        def apply_G(x):
+            Ax = self._A @ x
+            multiscale_jacobi_Ax = (precond_multiscale(Ax) + precond_seidel(Ax) - precond_multiscale(self._A @ precond_seidel(Ax))) # precond_multiscale_jacobi @ Ax
+            return x - multiscale_jacobi_Ax
+        
+        error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
+        # espec_error_operator = np.max(np.abs(av_error_operator))                      # raio espectral do operador de propagação de erro
+        print('Init 1')
+        # 5000 maior magnitude
+        BM = spla.eigs(error_operator, k=5000, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('ok\nInit 2')
+        # 5000 menor magnitude
+        try:
+            SM = spla.eigs(error_operator, k=5000 , which='SM', return_eigenvectors=False)
+        except:
+            print("Aviso: SM não convergiu.")
+            SM = np.array([])
+        print('ok')
+        
+        av_error_operator = np.concatenate([BM, SM])
 
-        # Resolvendo o sistema linear
-        t0 = time.time()
+        # # Resolvendo o sistema linear
+        # t0 = time.time()
 
-        iter = 1
-        itermax = 1000
-        tolerancia = 1.0e-3
+        # iter = 1
+        # itermax = 1000
+        # tolerancia = 1.0e-3
 
-        xold = np.zeros(nnod)
-        xnew = xold.copy()
-        resold1 = self._b - self._A @ xold
-        delta = np.linalg.norm(resold1)
-        deltaresold = [delta]
-        S1 = precond_multiscale
-        S2 = precond_seidel
+        # xold = np.zeros(nnod)
+        # xnew = xold.copy()
+        # resold1 = self._b - self._A @ xold
+        # delta = np.linalg.norm(resold1)
+        # deltaresold = [delta]
+        # S1 = precond_multiscale
+        # S2 = precond_seidel
 
-        while delta > tolerancia and iter < itermax:
-            xmed = xold + S1 @ resold1
-            resold2 = self._b - self._A @ xnew
-            xnew = xmed + S2 @ resold2
-            resold1 = self._b - self._A @ xnew
-            delta = np.linalg.norm(resold1)
+        # while delta > tolerancia and iter < itermax:
+        #     xmed = xold + S1 @ resold1
+        #     resold2 = self._b - self._A @ xnew
+        #     xnew = xmed + S2 @ resold2
+        #     resold1 = self._b - self._A @ xnew
+        #     delta = np.linalg.norm(resold1)
 
-            xold = xnew.copy()
-            iter += 1
-            deltaresold.append(delta)
+        #     xold = xnew.copy()
+        #     iter += 1
+        #     deltaresold.append(delta)
 
-        t_final = time.time() - t0
-        print(f"Tempo total (s): {t_final:.4f}")
-        print(f"Número de iterações: {iter}")
-        print(f"Resíduo final: {delta:.3e}")
+        # t_final = time.time() - t0
+        # print(f"Tempo total (s): {t_final:.4f}")
+        # print(f"Número de iterações: {iter}")
+        # print(f"Resíduo final: {delta:.3e}")
 
-        return av_error_operator, deltaresold
+        # return av_error_operator, deltaresold
+        return av_error_operator, None

@@ -70,8 +70,8 @@ class MatrixSpectralAnalysis:
     def Solve(self, method):
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
         nnod = self._A.shape[0]                # número de graus de liberdade
-        upperA = sp.tril(self._A, k=-1)    # matriz triangular inferior
-        lowerA = sp.triu(self._A, k=1)     # matriz triangular superior
+        lowerA = sp.tril(self._A, k=-1)    # matriz triangular inferior
+        upperA = sp.triu(self._A, k=1)     # matriz triangular superior
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
         print(nnod)
 
