@@ -33,11 +33,12 @@ class MatrixSpectralAnalysis:
 
         plt.show()
 
-    def PreconditionedMatrix_Analysis(self):
+    def PreconditionedMatrix_Analysis(self, save_path, problem):
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
         nnod = self._A.shape[0]                # número de graus de liberdade
-        av_T, VA = spla.eigs(self._A)  # espectro da matriz Tfina e espectro da matriz Tfina
-        # coordxA = np.arange(1, nnod + 1)
+        av_T = spla.eigs(self._A, which='LM', k=100, return_eigenvectors=False)  # espectro da matriz Tfina e espectro da matriz Tfina
+        av_T = np.append(av_T, spla.eigs(self._A, which='SM', k=100, return_eigenvectors=False))
+        # coordxA = np.arange(1, nnod + 1)  
         # coordyA = np.arange(1, nnod + 1)
         # X, Y = np.meshgrid(coordxA, coordyA)
         # fig = plt.figure()
@@ -47,8 +48,8 @@ class MatrixSpectralAnalysis:
         # ax.set_ylabel('y')
         # ax.set_title('Autovetores da matriz de transmissibilidade')
         # plt.show()
-        diff = self._A - self._A.T
-        print(np.abs(diff.data).max())
+        # diff = self._A - self._A.T
+        # print(np.abs(diff.data).max())
 
         plt.figure()
         # Círculo unitário
@@ -65,15 +66,15 @@ class MatrixSpectralAnalysis:
         plt.title('Espectro da matriz de transmissibilidade')
         plt.axis('equal')
         plt.grid(True)
-        plt.show()
+        if save_path:
+            plt.savefig(f'{save_path}/{problem}/Spectre_Original_{problem}')
 
-    def Solve(self, method):
+    def GetSpectre(self, method):
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
         nnod = self._A.shape[0]                # número de graus de liberdade
         lowerA = sp.tril(self._A, k=-1)    # matriz triangular inferior
         upperA = sp.triu(self._A, k=1)     # matriz triangular superior
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
-        print(nnod)
 
         args = (nnod, upperA, lowerA, diagA)
         if method in self._methods:
@@ -97,7 +98,7 @@ class MatrixSpectralAnalysis:
         plt.axis('equal')
         plt.grid(True)
         if save_path:
-            plt.savefig(f'{save_path}/Spectre_{method}_{problem}')
+            plt.savefig(f'{save_path}/{problem}/Spectre/Spectre_{method}_{problem}')
         # plt.show()
     
     def PlotResidues(self, method, residues):

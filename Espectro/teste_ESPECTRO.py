@@ -3,11 +3,36 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 import matplotlib.pyplot as plt
 from MatrixSpectralAnalysis import MatrixSpectralAnalysis
+import scipy.io as sio
+import os, sys
 
-problem = "Barreira"  # Barreira ou Joao
+problems = ['Esdras', 'Barreira', 'Joao', 'SPE10_0', 'SPE10_85']
+save_path = './Projeto-IC/Espectro/results'
+problem = "Barreira"
 
-if problem != 'Barreira':
-    data_path = './Projeto-IC/Espectro/dados'
+for x in problems:
+    try:
+        os.mkdir(f'{save_path}/{x}')
+        os.mkdir(f'{save_path}/{x}/Spectre')
+        os.mkdir(f'{save_path}/{x}/Residues')
+    except:
+
+        continue
+
+if problem == 'Esdras':
+    # Caso 1
+    data = sio.loadmat("Projeto-IC/arquivos/Problema_heterogeneo_buck_30x30.mat")
+    # Caso 2
+    # data = sio.loadmat("Projeto-IC/arquivos/Problema_homogeneo_buck_40x40.mat")
+
+    A = sp.csc_matrix(np.asarray(data["T"]))
+    OP = sp.csc_matrix(np.asarray( data['OP']))
+    OR = sp.csc_matrix(np.asarray(data['OR']))
+
+    b = np.asarray(data["F"]).ravel
+
+elif problem == 'Joao':
+    data_path = './Projeto-IC/Espectro/dados/Joao'
     colsA = np.load(f'{data_path}/cols_M.npy')
     linesA = np.load(f'{data_path}/lines_M.npy')
     dataA = np.load(f'{data_path}/data_M.npy')
@@ -24,7 +49,7 @@ if problem != 'Barreira':
     OP = sp.csc_matrix((dataOP, (linesOP, colsOP)))
     A = sp.csc_matrix((dataA, (linesA, colsA)))
 
-else:
+elif problem == 'Barreira':
     data_path = './SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira'
     lines=np.load(f'{data_path}/OP1_fMsRSB_lines.npy')
     cols=np.load(f'{data_path}/OP1_fMsRSB_cols.npy')
@@ -38,16 +63,32 @@ else:
     OR=sp.csc_matrix((np.ones(len(primal)), (primal, np.arange(len(primal)))),shape=(primal.max()+1, len(primal)))
     A=sp.csc_matrix((d,(l,c)),shape=(l.max()+1,c.max()+1))
 
+elif problem == 'SPE10_0':
+    data_path = './Projeto-IC/Espectro/dados/SPE10_0'
+
+
+elif problem == 'SPE10_85':
+    data_path = './Projeto-IC/Espectro/dados/SPE10_85'
+
+
+else:
+    print('problema não reconhecido.')
+    sys.exit()
+
+print(A.shape[0])
 sa = MatrixSpectralAnalysis(A, OP, OR, b)
-# print('verify')
-# sa.VerifyMatrixStructure()
-# print('preconditioned matrix analysis')
-# sa.PreconditionedMatrix_Analysis()
-print('solve')
-# methods: 'Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel'
-method = 'MultiscaleJacobi'
-av_error, res = sa.Solve(method)
-print(len(av_error))
-print(av_error[:100])
-sa.PlotSpectre(method, av_error, "./Projeto-IC/Espectro/results", problem)
-# sa.PlotResidues(method, res)
+sa.PreconditionedMatrix_Analysis(save_path, problem)
+methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
+# methods = ['MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
+for method in methods:
+    print(method)
+    try:
+        av_error = sa.GetSpectre(method)
+    except Exception as error:
+        print(f'{method} não pode ser realizado devido a: {error}\n')
+        continue
+
+    print(len(av_error))
+    print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
+    sa.PlotSpectre(method, av_error, save_path, problem)
+    # sa.PlotResidues(method, res)

@@ -72,13 +72,13 @@ diagTfine  = np.diag(np.diag(Tfine))    # matriz diagonal
 #diagTfine = Tfine - (upperTfine + lowerTfine)
 
 # ----- Selecionando o método que vai ser utilizado -----
-method = 'Jacobi'
+# method = 'Jacobi'
 #method = 'Seidel'
 #method = 'ILUfac'
 #method = 'Multiscale'
 # method = 'MultiscaleILUfac'
 #method = 'MultiscaleJacobi'
-#method = 'MultiscaleSeidel'
+method = 'MultiscaleSeidel'
 
 if method == "Jacobi":
     # ----- MÉTODO DE JACOBI -----
