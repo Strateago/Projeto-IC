@@ -3,12 +3,13 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 import matplotlib.pyplot as plt
 from MatrixSpectralAnalysis import MatrixSpectralAnalysis
+import ilupp
 import scipy.io as sio
 import os, sys
 
 problems = ['Esdras', 'Barreira', 'Joao', 'SPE10_0', 'SPE10_85']
 save_path = './Projeto-IC/Espectro/results'
-problem = "Barreira"
+problem = "Esdras"
 
 for x in problems:
     try:
@@ -16,7 +17,6 @@ for x in problems:
         os.mkdir(f'{save_path}/{x}/Spectre')
         os.mkdir(f'{save_path}/{x}/Residues')
     except:
-
         continue
 
 if problem == 'Esdras':
@@ -25,9 +25,9 @@ if problem == 'Esdras':
     # Caso 2
     # data = sio.loadmat("Projeto-IC/arquivos/Problema_homogeneo_buck_40x40.mat")
 
-    A = sp.csc_matrix(np.asarray(data["T"]))
-    OP = sp.csc_matrix(np.asarray( data['OP']))
-    OR = sp.csc_matrix(np.asarray(data['OR']))
+    A = sp.csc_matrix(np.asarray(data["T"], dtype=np.float64))
+    OP = sp.csc_matrix(np.asarray( data['OP'], dtype=np.float64))
+    OR = sp.csc_matrix(np.asarray(data['OR'], dtype=np.float64))
 
     b = np.asarray(data["F"]).ravel
 
@@ -75,18 +75,30 @@ else:
     print('problema não reconhecido.')
     sys.exit()
 
+# x = ilupp.ILU0Preconditioner(A)
+# ce = np.array(A.sum(axis=1)).flatten()
+# residuo = []
+# def _my_callback(xk):
+#     residuo.append(np.linalg.norm(A*xk - b))
+# y = spla.gmres(A, b, M=x, rtol=1e-5, callback=_my_callback, maxiter=20)
+# print(y)
+# print(residuo)
+
+
 print(A.shape[0])
 sa = MatrixSpectralAnalysis(A, OP, OR, b)
-sa.PreconditionedMatrix_Analysis(save_path, problem)
-methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
+# sa.PreconditionedMatrix_Analysis(save_path, problem)
+# methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
 # methods = ['MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
+methods = ['MultiscaleILUfac']
 for method in methods:
     print(method)
-    try:
-        av_error = sa.GetSpectre(method)
-    except Exception as error:
-        print(f'{method} não pode ser realizado devido a: {error}\n')
-        continue
+    # try:
+    #     av_error = sa.GetSpectre(method)
+    # except Exception as error:
+    #     print(f'{method} não pode ser realizado devido a: {error}\n')
+    #     continue
+    av_error = sa.GetSpectre(method)
 
     print(len(av_error))
     print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')

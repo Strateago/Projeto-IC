@@ -4,6 +4,7 @@ import scipy.linalg as la
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 import matplotlib.pyplot as plt
+import ilupp
 import time
 
 class SpectralAnalysisMethods:
@@ -128,11 +129,21 @@ class SpectralAnalysisMethods:
         # ----- MATRIZ A COM SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
 
-        ilu = spla.spilu(self._A, fill_factor=1)
+        # ilu = spla.spilu(self._A, fill_factor=1)
+        # def apply_G(x):
+        #     Ax = self._A @ x
+        #     precond_step = ilu.solve(Ax.astype(np.float64))
+        #     return x - precond_step
+
+        ilu = ilupp.ILU0Preconditioner(self._A)
         def apply_G(x):
             Ax = self._A @ x
-            precond_step = ilu.solve(Ax.astype(np.float64))
+            # aplicar M^{-1}Ax com ilupp
+            precond_step = Ax.copy()
+            ilu.apply(precond_step)
+
             return x - precond_step
+
         # error_operator = np.eye(nnod) - precond_system
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # av_error_operator = la.eigvals(error_operator)          # espectro da matriz de iteração
@@ -240,9 +251,11 @@ class SpectralAnalysisMethods:
         # # ----- MATRIZ A pré-condicionador Multiescala + SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
 
-        ilu = spla.spilu(self._A, fill_factor=1)
+        ilu = ilupp.ILU0Preconditioner(self._A)
         def precond_ilu(x): # Aproximação de A-1 ilu
-            return ilu.solve(x.astype(np.float64))
+            val = x.copy()
+            ilu.apply(val)
+            return val
 
         RAP = self._OR @ self._A @ self._OP
         solver = spla.factorized(RAP)
