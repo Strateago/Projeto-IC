@@ -85,8 +85,8 @@ class MatrixSpectralAnalysisSolve:
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
 
         args = (nnod, upperA, lowerA, diagA)
-        if method in self._methods:
-            return self._methods[method](args)
+        if method in self._SpectralMethods:
+            return self._SpectralMethods[method](args)
         else:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
@@ -97,8 +97,8 @@ class MatrixSpectralAnalysisSolve:
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
 
         args = (nnod, upperA, lowerA, diagA)
-        if method in self._methods:
-            return self._methods[method](args)
+        if method in self._SolveMethods:
+            return self._SolvegMethods[method](args)
         else:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
