@@ -9,7 +9,7 @@ import os, sys
 
 problems = ['Esdras', 'Barreira', 'Joao', 'SPE10_0', 'SPE10_85']
 save_path = './Projeto-IC/Espectro/results'
-problem = "Esdras"
+problem = "Barreira"
 
 for x in problems:
     try:
@@ -49,13 +49,13 @@ elif problem == 'Joao':
     OP = sp.csc_matrix((dataOP, (linesOP, colsOP)))
     A = sp.csc_matrix((dataA, (linesA, colsA)))
 
+# Executa problema da barreira sem o F. Problema com o F já está feito.
 elif problem == 'Barreira':
     data_path = './SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira'
-    lines=np.load(f'{data_path}/OP1_fMsRSB_lines.npy')
-    cols=np.load(f'{data_path}/OP1_fMsRSB_cols.npy')
-    data=np.load(f'{data_path}/OP1_fMsRSB_data.npy')
-    primal=np.load(f'{data_path}/primal_id_1_fMsRSB.npy')
-    centroids=np.load(f'{data_path}/centroids.npy')
+    lines=np.load(f'{data_path}/OP1_MsRSB_lines.npy')
+    cols=np.load(f'{data_path}/OP1_MsRSB_cols.npy')
+    data=np.load(f'{data_path}/OP1_MsRSB_data.npy')
+    primal=np.load(f'{data_path}/primal_id_1_MsRSB.npy')
     l,c,d=np.load(f'{data_path}/A_lines.npy'),np.load(f'{data_path}/A_cols.npy'),np.load(f'{data_path}/A_data.npy')
     b=np.load(f"{data_path}/b_vector.npy")
 
@@ -85,20 +85,19 @@ else:
 # print(residuo)
 
 
-print(A.shape[0])
+print(f'{problem}: {A.shape[0]}')
 sa = MatrixSpectralAnalysis(A, OP, OR, b)
-# sa.PreconditionedMatrix_Analysis(save_path, problem)
-# methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
-# methods = ['MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
-methods = ['MultiscaleILUfac']
+print('Espectro da matriz de Transmissibilidade')
+sa.PreconditionedMatrix_Analysis(save_path, problem)
+print('ok\n')
+methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
 for method in methods:
     print(method)
-    # try:
-    #     av_error = sa.GetSpectre(method)
-    # except Exception as error:
-    #     print(f'{method} não pode ser realizado devido a: {error}\n')
-    #     continue
-    av_error = sa.GetSpectre(method)
+    try:
+        av_error = sa.GetSpectre(method)
+    except Exception as error:
+        print(f'{method} não pode ser realizado devido a: {error}\n')
+        continue
 
     print(len(av_error))
     print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
