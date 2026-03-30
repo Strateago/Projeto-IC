@@ -49,10 +49,10 @@ elif problem == 'Joao':
 # Executa problema da barreira sem o F. Problema com o F já está feito.
 elif problem == 'Barreira':
     data_path = './SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira'
-    lines=np.load(f'{data_path}/OP1_MsRSB_lines.npy')
-    cols=np.load(f'{data_path}/OP1_MsRSB_cols.npy')
-    data=np.load(f'{data_path}/OP1_MsRSB_data.npy')
-    primal=np.load(f'{data_path}/primal_id_1_MsRSB.npy')
+    lines=np.load(f'{data_path}/OP1_fMsRSB_lines.npy')
+    cols=np.load(f'{data_path}/OP1_fMsRSB_cols.npy')
+    data=np.load(f'{data_path}/OP1_fMsRSB_data.npy')
+    primal=np.load(f'{data_path}/primal_id_1_fMsRSB.npy')
     l,c,d=np.load(f'{data_path}/A_lines.npy'),np.load(f'{data_path}/A_cols.npy'),np.load(f'{data_path}/A_data.npy')
     b=np.load(f"{data_path}/b_vector.npy")
 
