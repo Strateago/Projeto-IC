@@ -1,27 +1,35 @@
 import numpy as np
-import scipy.io as sio
-import scipy.linalg as la
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 import matplotlib.pyplot as plt
-import time
 from SpectralAnalysisMethods import SpectralAnalysisMethods
+from SolvingMethods import SolvingMethods
 
-class MatrixSpectralAnalysis:
+class MatrixSpectralAnalysisSolve:
     def __init__(self, A, OP, OR, b):
         self._OR = OR
         self._OP = OP
         self._A = A
         self._b = b
 
-        meth = SpectralAnalysisMethods(self._A, self._b, self._OP, self._OR)
-        self._methods = {'Jacobi': meth.Jacobi,
-                        'Seidel': meth.Seidel,
-                        'ILUfac': meth.ILUfac,
-                        'Multiscale': meth.Multiscale,
-                        'MultiscaleILUfac': meth.Multiscale_ILUfac,
-                        'MultiscaleJacobi': meth.Multiscale_Jacobi,
-                        'MultiscaleSeidel': meth.Multiscale_Seidel
+        spectral_methods = SpectralAnalysisMethods(self._A, self._b, self._OP, self._OR)
+        self._SpectralMethods = {'Jacobi': spectral_methods.Jacobi,
+                        'Seidel': spectral_methods.Seidel,
+                        'ILUfac': spectral_methods.ILUfac,
+                        'Multiscale': spectral_methods.Multiscale,
+                        'MultiscaleILUfac': spectral_methods.Multiscale_ILUfac,
+                        'MultiscaleJacobi': spectral_methods.Multiscale_Jacobi,
+                        'MultiscaleSeidel': spectral_methods.Multiscale_Seidel
+                        }
+        
+        solve_methods = SolvingMethods(self._A, self._b, self._OP, self._OR)
+        self._SolveMethods = {'Jacobi': solve_methods.Jacobi,
+                        'Seidel': solve_methods.Seidel,
+                        'ILUfac': solve_methods.ILUfac,
+                        'Multiscale': solve_methods.Multiscale,
+                        'MultiscaleILUfac': solve_methods.Multiscale_ILUfac,
+                        'MultiscaleJacobi': solve_methods.Multiscale_Jacobi,
+                        'MultiscaleSeidel': solve_methods.Multiscale_Seidel
                         }
 
     def VerifyMatrixStructure(self):
@@ -71,6 +79,18 @@ class MatrixSpectralAnalysis:
 
     def GetSpectre(self, method):
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
+        nnod = self._A.shape[0]                # número de graus de liberdade
+        lowerA = sp.tril(self._A, k=-1)    # matriz triangular inferior
+        upperA = sp.triu(self._A, k=1)     # matriz triangular superior
+        diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
+
+        args = (nnod, upperA, lowerA, diagA)
+        if method in self._methods:
+            return self._methods[method](args)
+        else:
+            raise ValueError(f"Método '{method}' não reconhecido.")
+        
+    def Solve(self, method):
         nnod = self._A.shape[0]                # número de graus de liberdade
         lowerA = sp.tril(self._A, k=-1)    # matriz triangular inferior
         upperA = sp.triu(self._A, k=1)     # matriz triangular superior

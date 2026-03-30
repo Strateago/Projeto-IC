@@ -1,11 +1,6 @@
 import numpy as np
-import scipy.io as sio
-import scipy.linalg as la
-import scipy.sparse as sp
 import scipy.sparse.linalg as spla
-import matplotlib.pyplot as plt
 import ilupp
-import time
 
 class SpectralAnalysisMethods:
     def __init__(self, A, b, OP, OR):
@@ -31,42 +26,15 @@ class SpectralAnalysisMethods:
         # 100 menor magnitude
         try:
             SM = spla.eigs(error_operator, k=100, which='SM', return_eigenvectors=False)
-        except:
-            print("Aviso: SM não convergiu.")
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except Exception as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
         print('ok')
 
         av_error_operator = np.concatenate([BM, SM])
-
-        # # Resolvendo o sistema linear
-        # t0 = time.time()
-
-        # iter = 1
-        # itermax = 100
-        # tolerancia = 1.0e-3
-
-        # xold = np.zeros(nnod)
-        # xnew = xold.copy()
-        # resold = self._b - self._A @ xold
-        # delta = spla.norm(resold)
-        # deltaresold = [delta]
-        # S = 1/diagA
-
-        # while delta > tolerancia and iter < itermax:
-        #     xnew = xold + S @ resold
-        #     resold = self._b - self._A @ xnew
-        #     delta = spla.norm(resold)
-
-        #     xold = xnew.copy()
-        #     iter += 1
-        #     deltaresold.append(delta)
-
-        # t_final = time.time() - t0
-        # print(f"Tempo total (s): {t_final:.4f}")
-        # print(f"Número de iterações: {iter}")
-        # print(f"Resíduo final: {delta:.3e}")
-
-        # return av_error_operator, deltaresold
         return av_error_operator
 
     def Seidel(self, args):
@@ -87,53 +55,20 @@ class SpectralAnalysisMethods:
         # 100 menor magnitude
         try:
             SM = spla.eigs(error_operator, k=100, which='SM', return_eigenvectors=False)
-        except:
-            print("Aviso: SM não convergiu.")
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except Exception as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
         print('ok')
         
         av_error_operator = np.concatenate([BM, SM])
-
-        # # Resolvendo o sistema linear
-        # t0 = time.time()
-
-        # iter = 1
-        # itermax = 100
-        # tolerancia = 1.0e-3
-
-        # xold = np.zeros(nnod)
-        # xnew = xold.copy()
-        # resold = self._b - self._A @ xold
-        # delta = np.linalg.norm(resold)
-        # deltaresold = [delta]
-        # S = la.inv(diagA + lowerA)
-
-        # while delta > tolerancia and iter < itermax:
-        #     xnew = xold + S @ resold
-        #     resold = self._b - self._A @ xnew
-        #     delta = np.linalg.norm(resold)
-
-        #     xold = xnew.copy()
-        #     iter += 1
-        #     deltaresold.append(delta)
-
-        # t_final = time.time() - t0
-        # print(f"Tempo total (s): {t_final:.4f}")
-        # print(f"Número de iterações: {iter}")
-        # print(f"Resíduo final: {delta:.3e}")
-
-        # return av_error_operator, deltaresold
         return av_error_operator
         
     def ILUfac(self, args):
         # ----- MATRIZ A COM SUAVIZADOR ILU(0) -----
         nnod, upperA, lowerA, diagA = args
-
-        # ilu = spla.spilu(self._A, fill_factor=1)
-        # def apply_G(x):
-        #     Ax = self._A @ x
-        #     precond_step = ilu.solve(Ax.astype(np.float64))
-        #     return x - precond_step
 
         ilu = ilupp.ILU0Preconditioner(self._A)
         def apply_G(x):
@@ -153,40 +88,16 @@ class SpectralAnalysisMethods:
         print('ok\nInit 2')
         # 100 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=100 , which='SM', return_eigenvectors=False)
-        except:
-            print("Aviso: SM não convergiu.")
+            SM = spla.eigs(error_operator, k=100, which='SM', return_eigenvectors=False)
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except Exception as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
         print('ok')
         
         av_error_operator = np.concatenate([BM, SM])
-        # av_error_operator = BM
-
-        # # Resolvendo o sistema linear
-        # t0 = time.time()
-
-        # xold = np.zeros(nnod)
-        # xnew = xold.copy()
-        # iter = 1
-        # itermax = 100
-        # resold = self._b - self._A @ xold
-        # tolerancia = 1.0e-3
-        # delta = np.linalg.norm(resold)
-        # deltaresold = [delta]
-        # S = precond_ilu
-
-        # while delta > tolerancia and iter < itermax:
-        #     xnew = xold + S @ resold
-        #     resold = self._b - self._A @ xnew
-        #     delta = np.linalg.norm(resold)
-        #     xold = xnew.copy()
-        #     iter += 1
-        #     deltaresold.append(delta)
-
-        # t_final = time.time() - t0
-        # print(f"Tempo total (s): {t_final:.4f}")
-
-        # return av_error_operator, deltaresold
         return av_error_operator
     
     def Multiscale(self, args):
@@ -207,44 +118,16 @@ class SpectralAnalysisMethods:
         print('ok\nInit 2')
         # 100 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=100 , which='SM', return_eigenvectors=False)
-        except:
-            print("Aviso: SM não convergiu.")
+            SM = spla.eigs(error_operator, k=100, which='SM', return_eigenvectors=False)
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except Exception as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
         print('ok')
         
         av_error_operator = np.concatenate([BM, SM])
-
-
-        # # Resolvendo o sistema linear
-        # t0 = time.time()
-
-        # iter = 1
-        # itermax = 100
-        # tolerancia = 1.0e-3
-
-        # xold = np.zeros(nnod)
-        # xnew = xold.copy()
-        # resold = self._b - self._A @ xold
-        # delta = np.linalg.norm(resold)
-        # deltaresold = [delta]
-        # S = precond_multiscale
-
-        # while delta > tolerancia and iter < itermax:
-        #     xnew = xold + S @ resold
-        #     resold = self._b - self._A @ xnew
-        #     delta = np.linalg.norm(resold)
-
-        #     xold = xnew.copy()
-        #     iter += 1
-        #     deltaresold.append(delta)
-
-        # t_final = time.time() - t0
-        # print(f"Tempo total (s): {t_final:.4f}")
-        # print(f"Número de iterações: {iter}")
-        # print(f"Resíduo final: {delta:.3e}")
-
-        # return av_error_operator, deltaresold
         return av_error_operator
 
     def Multiscale_ILUfac(self, args):
@@ -268,6 +151,7 @@ class SpectralAnalysisMethods:
             return x - milu_Ax
         
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
+        
         # espec_error_operator = np.max(np.abs(av_error_operator))                      # raio espectral do operador de propagação de erro
         print('Init 1')
         # 100 maior magnitude
@@ -275,46 +159,16 @@ class SpectralAnalysisMethods:
         print('ok\nInit 2')
         # 100 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=100 , which='SM', return_eigenvectors=False)
-        except:
-            print("Aviso: SM não convergiu.")
+            SM = spla.eigs(error_operator, k=100, which='SM', return_eigenvectors=False)
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except Exception as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
         print('ok')
         
         av_error_operator = np.concatenate([BM, SM])
-
-        # # Resolvendo o sistema linear
-        # t0 = time.time()
-
-        # iter = 1
-        # itermax = 1000
-        # tolerancia = 1.0e-3
-
-        # xold = np.zeros(nnod)
-        # xnew = xold.copy()
-        # resold1 = self._b - self._A @ xold
-        # delta = np.linalg.norm(resold1)
-        # deltaresold = [delta]
-        # S1 = precond_multiscale
-        # S2 = precond_ilu
-
-        # while delta > tolerancia and iter < itermax:
-        #     xmed = xold + S1 @ resold1
-        #     resold2 = self._b - self._A @ xnew
-        #     xnew = xmed + S2 @ resold2
-        #     resold1 = self._b - self._A @ xnew
-        #     delta = np.linalg.norm(resold1)
-
-        #     xold = xnew.copy()
-        #     iter += 1
-        #     deltaresold.append(delta)
-
-        # t_final = time.time() - t0
-        # print(f"Tempo total (s): {t_final:.4f}")
-        # print(f"Número de iterações: {iter}")
-        # print(f"Resíduo final: {delta:.3e}")
-
-        # return av_error_operator_milu, deltaresold
         return av_error_operator
 
     def Multiscale_Jacobi(self, args):
@@ -342,46 +196,16 @@ class SpectralAnalysisMethods:
         print('ok\nInit 2')
         # 100 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=100 , which='SM', return_eigenvectors=False)
-        except:
-            print("Aviso: SM não convergiu.")
+            SM = spla.eigs(error_operator, k=100, which='SM', return_eigenvectors=False)
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except Exception as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
         print('ok')
         
         av_error_operator = np.concatenate([BM, SM])
-
-        # # Resolvendo o sistema linear
-        # t0 = time.time()
-
-        # iter = 1
-        # itermax = 1000
-        # tolerancia = 1.0e-3
-
-        # xold = np.zeros(nnod)
-        # xnew = xold.copy()
-        # resold1 = self._b - self._A @ xold
-        # delta = np.linalg.norm(resold1)
-        # deltaresold = [delta]
-        # S1 = precond_multiscale
-        # S2 = precond_jacobi
-
-        # while delta > tolerancia and iter < itermax:
-        #     xmed = xold + S1 @ resold1
-        #     resold2 = self._b - self._A @ xnew
-        #     xnew = xmed + S2 @ resold2
-        #     resold1 = self._b - self._A @ xnew
-        #     delta = np.linalg.norm(resold1)
-
-        #     xold = xnew.copy()
-        #     iter += 1
-        #     deltaresold.append(delta)
-
-        # t_final = time.time() - t0
-        # print(f"Tempo total (s): {t_final:.4f}")
-        # print(f"Número de iterações: {iter}")
-        # print(f"Resíduo final: {delta:.3e}")
-
-        # return av_error_operator_mjacobi, deltaresold
         return av_error_operator
 
     def Multiscale_Seidel(self, args):
@@ -409,44 +233,14 @@ class SpectralAnalysisMethods:
         print('ok\nInit 2')
         # 100 menor magnitude
         try:
-            SM = spla.eigs(error_operator, k=100 , which='SM', return_eigenvectors=False)
-        except:
-            print("Aviso: SM não convergiu.")
+            SM = spla.eigs(error_operator, k=100, which='SM', return_eigenvectors=False)
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except Exception as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
         print('ok')
         
         av_error_operator = np.concatenate([BM, SM])
-
-        # # Resolvendo o sistema linear
-        # t0 = time.time()
-
-        # iter = 1
-        # itermax = 1000
-        # tolerancia = 1.0e-3
-
-        # xold = np.zeros(nnod)
-        # xnew = xold.copy()
-        # resold1 = self._b - self._A @ xold
-        # delta = np.linalg.norm(resold1)
-        # deltaresold = [delta]
-        # S1 = precond_multiscale
-        # S2 = precond_seidel
-
-        # while delta > tolerancia and iter < itermax:
-        #     xmed = xold + S1 @ resold1
-        #     resold2 = self._b - self._A @ xnew
-        #     xnew = xmed + S2 @ resold2
-        #     resold1 = self._b - self._A @ xnew
-        #     delta = np.linalg.norm(resold1)
-
-        #     xold = xnew.copy()
-        #     iter += 1
-        #     deltaresold.append(delta)
-
-        # t_final = time.time() - t0
-        # print(f"Tempo total (s): {t_final:.4f}")
-        # print(f"Número de iterações: {iter}")
-        # print(f"Resíduo final: {delta:.3e}")
-
-        # return av_error_operator, deltaresold
         return av_error_operator

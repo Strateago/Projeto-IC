@@ -1,15 +1,12 @@
 import numpy as np
 import scipy.sparse as sp
-import scipy.sparse.linalg as spla
-import matplotlib.pyplot as plt
-from MatrixSpectralAnalysis import MatrixSpectralAnalysis
-import ilupp
+from MatrixSpectralAnalysisSolve import MatrixSpectralAnalysisSolve
 import scipy.io as sio
 import os, sys
 
 problems = ['Esdras', 'Barreira', 'Joao', 'SPE10_0', 'SPE10_85']
 save_path = './Projeto-IC/Espectro/results'
-problem = "Esdras"
+problem = "Barreira"
 
 for x in problems:
     try:
@@ -65,7 +62,7 @@ elif problem == 'Barreira':
 
 elif problem == 'SPE10_0':
     data_path = './Projeto-IC/Espectro/dados/SPE10_0'
-
+    A = np.load
 
 elif problem == 'SPE10_85':
     data_path = './Projeto-IC/Espectro/dados/SPE10_85'
@@ -86,19 +83,22 @@ else:
 
 
 print(A.shape[0])
-sa = MatrixSpectralAnalysis(A, OP, OR, b)
+sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)
 # sa.PreconditionedMatrix_Analysis(save_path, problem)
-# methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
-# methods = ['MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
-methods = ['MultiscaleILUfac']
+methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
 for method in methods:
     print(method)
+    try:
+        av_error = sa.GetSpectre(method)
+    except Exception as error:
+        print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
+        continue
+
     # try:
-    #     av_error = sa.GetSpectre(method)
+    #     res = sa.Solve(method)
     # except Exception as error:
-    #     print(f'{method} não pode ser realizado devido a: {error}\n')
+    #     print(f'{method} não pôde ser resolvido devido a: {error}\n')
     #     continue
-    av_error = sa.GetSpectre(method)
 
     print(len(av_error))
     print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
