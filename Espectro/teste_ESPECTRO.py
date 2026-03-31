@@ -6,7 +6,7 @@ import os, sys
 
 problems = ['Esdras', 'Barreira', 'Joao', 'SPE10_0', 'SPE10_85']
 save_path = './Projeto-IC/Espectro/results'
-problem = "Barreira"
+problem = "SPE10_0"
 
 for x in problems:
     try:
@@ -49,10 +49,10 @@ elif problem == 'Joao':
 # Executa problema da barreira sem o F. Problema com o F já está feito.
 elif problem == 'Barreira':
     data_path = './SPE10-PRESSURE-MATRICES/SPE10-PRESSURE-MATRICES/100_100_barreira'
-    lines=np.load(f'{data_path}/OP1_MsRSB_lines.npy')
-    cols=np.load(f'{data_path}/OP1_MsRSB_cols.npy')
-    data=np.load(f'{data_path}/OP1_MsRSB_data.npy')
-    primal=np.load(f'{data_path}/primal_id_1_MsRSB.npy')
+    lines=np.load(f'{data_path}/OP1_fMsRSB_lines.npy')
+    cols=np.load(f'{data_path}/OP1_fMsRSB_cols.npy')
+    data=np.load(f'{data_path}/OP1_fMsRSB_data.npy')
+    primal=np.load(f'{data_path}/primal_id_1_fMsRSB.npy')
     l,c,d=np.load(f'{data_path}/A_lines.npy'),np.load(f'{data_path}/A_cols.npy'),np.load(f'{data_path}/A_data.npy')
     b=np.load(f"{data_path}/b_vector.npy")
 
@@ -62,11 +62,15 @@ elif problem == 'Barreira':
 
 elif problem == 'SPE10_0':
     data_path = './Projeto-IC/Espectro/dados/SPE10_0'
-    A = np.load
+    A = (np.load(f'{data_path}/Jpp_0.npy', allow_pickle=True)).sum()  
+    OR = (np.load(f'{data_path}/OR_0.npy', allow_pickle=True)).sum()
+    OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
 
 elif problem == 'SPE10_85':
     data_path = './Projeto-IC/Espectro/dados/SPE10_85'
-
+    A = (np.load(f'{data_path}/Jpp_85.npy', allow_pickle=True)).sum()  
+    OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
+    OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
 
 else:
     print('problema não reconhecido.')
