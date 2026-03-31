@@ -6,7 +6,7 @@ import os, sys
 
 problems = ['Esdras', 'Barreira', 'Joao', 'SPE10_0', 'SPE10_85']
 save_path = './Projeto-IC/Espectro/results'
-problem = "Barreira"
+problem = "SPE10_0"
 
 for x in problems:
     try:
@@ -62,11 +62,15 @@ elif problem == 'Barreira':
 
 elif problem == 'SPE10_0':
     data_path = './Projeto-IC/Espectro/dados/SPE10_0'
-    A = np.load
+    A = (np.load(f'{data_path}/Jpp_0.npy', allow_pickle=True)).sum()  
+    OR = (np.load(f'{data_path}/OR_0.npy', allow_pickle=True)).sum()
+    OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
 
 elif problem == 'SPE10_85':
     data_path = './Projeto-IC/Espectro/dados/SPE10_85'
-
+    A = (np.load(f'{data_path}/Jpp_85.npy', allow_pickle=True)).sum()  
+    OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
+    OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
 
 else:
     print('problema não reconhecido.')
