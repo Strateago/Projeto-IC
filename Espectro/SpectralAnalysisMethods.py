@@ -29,7 +29,7 @@ class SpectralAnalysisMethods:
         except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
             SM = error.eigenvalues
             print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
-        except Exception as error: # Captura outros erros (memória, álgebra, etc)
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
             print(f'SM falhou por outro motivo: {error}')
         print('ok')
@@ -58,7 +58,7 @@ class SpectralAnalysisMethods:
         except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
             SM = error.eigenvalues
             print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
-        except Exception as error: # Captura outros erros (memória, álgebra, etc)
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
             print(f'SM falhou por outro motivo: {error}')
         print('ok')
@@ -92,7 +92,7 @@ class SpectralAnalysisMethods:
         except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
             SM = error.eigenvalues
             print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
-        except Exception as error: # Captura outros erros (memória, álgebra, etc)
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
             print(f'SM falhou por outro motivo: {error}')
         print('ok')
@@ -122,7 +122,7 @@ class SpectralAnalysisMethods:
         except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
             SM = error.eigenvalues
             print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
-        except Exception as error: # Captura outros erros (memória, álgebra, etc)
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
             print(f'SM falhou por outro motivo: {error}')
         print('ok')
@@ -163,7 +163,7 @@ class SpectralAnalysisMethods:
         except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
             SM = error.eigenvalues
             print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
-        except Exception as error: # Captura outros erros (memória, álgebra, etc)
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
             print(f'SM falhou por outro motivo: {error}')
         print('ok')
@@ -200,7 +200,7 @@ class SpectralAnalysisMethods:
         except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
             SM = error.eigenvalues
             print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
-        except Exception as error: # Captura outros erros (memória, álgebra, etc)
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
             print(f'SM falhou por outro motivo: {error}')
         print('ok')
@@ -237,7 +237,7 @@ class SpectralAnalysisMethods:
         except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
             SM = error.eigenvalues
             print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
-        except Exception as error: # Captura outros erros (memória, álgebra, etc)
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
             SM = np.array([])
             print(f'SM falhou por outro motivo: {error}')
         print('ok')
