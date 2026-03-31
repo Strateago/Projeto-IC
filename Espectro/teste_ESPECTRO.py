@@ -65,26 +65,18 @@ elif problem == 'SPE10_0':
     A = (np.load(f'{data_path}/Jpp_0.npy', allow_pickle=True)).sum()  
     OR = (np.load(f'{data_path}/OR_0.npy', allow_pickle=True)).sum()
     OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
+    b = None
 
 elif problem == 'SPE10_85':
     data_path = './Projeto-IC/Espectro/dados/SPE10_85'
     A = (np.load(f'{data_path}/Jpp_85.npy', allow_pickle=True)).sum()  
     OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
     OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
+    b = None
 
 else:
     print('problema não reconhecido.')
     sys.exit()
-
-# x = ilupp.ILU0Preconditioner(A)
-# ce = np.array(A.sum(axis=1)).flatten()
-# residuo = []
-# def _my_callback(xk):
-#     residuo.append(np.linalg.norm(A*xk - b))
-# y = spla.gmres(A, b, M=x, rtol=1e-5, callback=_my_callback, maxiter=20)
-# print(y)
-# print(residuo)
-
 
 print(f'{problem}: {A.shape[0]}')
 sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)

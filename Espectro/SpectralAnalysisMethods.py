@@ -222,8 +222,8 @@ class SpectralAnalysisMethods:
 
         def apply_G(x):
             Ax = self._A @ x
-            multiscale_jacobi_Ax = (precond_multiscale(Ax) + precond_seidel(Ax) - precond_multiscale(self._A @ precond_seidel(Ax))) # precond_multiscale_jacobi @ Ax
-            return x - multiscale_jacobi_Ax
+            multiscale_seidel_Ax = (precond_multiscale(Ax) + precond_seidel(Ax) - precond_multiscale(self._A @ precond_seidel(Ax))) # precond_multiscale_jacobi @ Ax
+            return x - multiscale_seidel_Ax
         
         error_operator = spla.LinearOperator((self._A.shape[0], self._A.shape[0]), matvec=apply_G)
         # espec_error_operator = np.max(np.abs(av_error_operator))                      # raio espectral do operador de propagação de erro
