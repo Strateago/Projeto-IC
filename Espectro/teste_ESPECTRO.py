@@ -11,17 +11,17 @@ for x in problems:
     try:
         os.mkdir(f'{save_path}/{x}')
     except:
-        print()
+        print('', end='')
 
     try:
         os.mkdir(f'{save_path}/{x}/Spectre')
     except:
-        print()
+        print('', end='')
     
     try:
         os.mkdir(f'{save_path}/{x}/Residues')
     except:
-        print()
+        print('', end='')
 
 def load_problem(problem):
     if problem == 'Esdras':
@@ -128,7 +128,7 @@ def load_problem(problem):
 
     return A, OP, OR, b
 
-for problem in (p for p in problems if "SPE10_0" in p):
+for problem in (p for p in problems if "SPE10_85" in p):
     A, OP, OR, b = load_problem(problem) 
     print(f'{problem}: {A.shape[0]}')
     sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)
@@ -154,3 +154,4 @@ for problem in (p for p in problems if "SPE10_0" in p):
         print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
         sa.PlotSpectre(method, av_error, save_path, problem)
         # sa.PlotResidues(method, res)
+    print()
