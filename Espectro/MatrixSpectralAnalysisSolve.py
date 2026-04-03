@@ -30,34 +30,25 @@ class MatrixSpectralAnalysisSolve:
                         'MultiscaleILUfac': solve_methods.Multiscale_ILUfac,
                         'MultiscaleJacobi': solve_methods.Multiscale_Jacobi,
                         'MultiscaleSeidel': solve_methods.Multiscale_Seidel
+                        # 'AMG': solve_methods.AMG
                         }
 
-    def VerifyMatrixStructure(self):
+    def VerifyMatrixStructure(self, problem, save_path=None):
         # ----- Verificando a estrutura da matriz (TPFA) -----
         plt.figure()
-        plt.subplot(1, 2, 1)
-        plt.spy(self._A, markersize=1)
-        plt.title("Estrutura A")
+        plt.spy(self._A)
+        plt.title(f'Estrutura da Matriz: {problem}')
+        if save_path:
+            plt.savefig(f'{save_path}/{problem}/Esparsidade_{problem}')
+        else:
+            plt.show()
+        plt.close()
 
-        plt.show()
-
-    def PreconditionedMatrix_Analysis(self, save_path, problem):
+    def InitialSpectre(self, problem, save_path=None):
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
         nnod = self._A.shape[0]                # número de graus de liberdade
         av_T = spla.eigs(self._A, which='LM', k=100, return_eigenvectors=False)  # espectro da matriz Tfina e espectro da matriz Tfina
         av_T = np.append(av_T, spla.eigs(self._A, which='SM', k=100, return_eigenvectors=False))
-        # coordxA = np.arange(1, nnod + 1)  
-        # coordyA = np.arange(1, nnod + 1)
-        # X, Y = np.meshgrid(coordxA, coordyA)
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        # ax.plot_surface(X, Y, np.real(VA), cmap='viridis')
-        # ax.set_xlabel('x')
-        # ax.set_ylabel('y')
-        # ax.set_title('Autovetores da matriz de transmissibilidade')
-        # plt.show()
-        # diff = self._A - self._A.T
-        # print(np.abs(diff.data).max())
 
         plt.figure()
         # Círculo unitário
@@ -76,6 +67,9 @@ class MatrixSpectralAnalysisSolve:
         plt.grid(True)
         if save_path:
             plt.savefig(f'{save_path}/{problem}/Spectre_Original_{problem}')
+        else:
+            plt.show()
+        plt.close()
 
     def GetSpectre(self, method):
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
@@ -119,9 +113,11 @@ class MatrixSpectralAnalysisSolve:
         plt.grid(True)
         if save_path:
             plt.savefig(f'{save_path}/{problem}/Spectre/Spectre_{method}_{problem}')
-        # plt.show()
+        else:
+            plt.show()
+        plt.close()
     
-    def PlotResidues(self, method, residues):
+    def PlotResidues(self, method, residues, save_path=None, problem=""):
         plt.figure()
         plt.plot(residues)
         plt.xlabel("Iteração")
@@ -129,4 +125,8 @@ class MatrixSpectralAnalysisSolve:
         plt.title(f'Resíduo {method}')
         plt.yscale("log")
         plt.grid(True)
-        plt.show()
+        if save_path:
+            plt.savefig(f'{save_path}/{problem}/Residues/Residues_{method}_{problem}')
+        else:
+            plt.show()
+        plt.close()

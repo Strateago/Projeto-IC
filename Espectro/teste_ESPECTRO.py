@@ -110,14 +110,14 @@ def load_problem(problem):
 
     elif problem == 'SPE10_85_true':
         data_path = './Projeto-IC/Espectro/dados/SPE10_85'
-        A = (np.load(f'{data_path}/Jpp_CPR_true_IMES_85.npy', allow_pickle=True)).sum()  
+        A = (np.load(f'{data_path}/Jpp_CPR_true_IMPES_85.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
         b = None
 
     elif problem == 'SPE10_85_quasi':
         data_path = './Projeto-IC/Espectro/dados/SPE10_85'
-        A = (np.load(f'{data_path}/Jpp_CPR_quasi_IMES_85.npy', allow_pickle=True)).sum()  
+        A = (np.load(f'{data_path}/Jpp_CPR_quasi_IMPES_85.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
         b = None
@@ -128,12 +128,17 @@ def load_problem(problem):
 
     return A, OP, OR, b
 
-for problem in (p for p in problems if "SPE10_85" in p):
-    A, OP, OR, b = load_problem(problem) 
+# for problem in (p for p in problems if "SPE10_0" in p):
+for problem in problems:
+    A, OP, OR, b = load_problem(problem)
+
     print(f'{problem}: {A.shape[0]}')
     sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)
+    print('Estrutura da Matriz')
+    sa.VerifyMatrixStructure(problem, save_path)
+    print('ok')
     print('Espectro da matriz de Transmissibilidade')
-    sa.PreconditionedMatrix_Analysis(save_path, problem)
+    sa.InitialSpectre(save_path, problem)
     print('ok\n')
     methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
     for method in methods:
