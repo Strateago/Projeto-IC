@@ -175,8 +175,9 @@ class SpectralAnalysisMethods:
         # ----- MATRIZ A pré-condicionador Multiescala + Jacobi -----
         nnod, upperA, lowerA, diagA = args
 
+        inv_diag = 1/diagA.diagonal()
         def precond_jacobi(x):
-            return spla.spsolve(diagA, x)
+            return inv_diag * x
         
         RAP = self._OR @ self._A @ self._OP
         solver = spla.factorized(RAP)

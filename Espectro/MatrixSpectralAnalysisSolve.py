@@ -4,6 +4,7 @@ import scipy.sparse.linalg as spla
 import matplotlib.pyplot as plt
 from SpectralAnalysisMethods import SpectralAnalysisMethods
 from SolvingMethods import SolvingMethods
+import time
 
 class MatrixSpectralAnalysisSolve:
     def __init__(self, A, OP, OR, b):
@@ -84,15 +85,38 @@ class MatrixSpectralAnalysisSolve:
         else:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
-    def Solve(self, method):
+    def Solve(self, method, x0=None, rtol=1e-8, maxiter=2500):
         nnod = self._A.shape[0]                # número de graus de liberdade
         lowerA = sp.tril(self._A, k=-1)    # matriz triangular inferior
         upperA = sp.triu(self._A, k=1)     # matriz triangular superior
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
-
         args = (nnod, upperA, lowerA, diagA)
         if method in self._SolveMethods:
-            return self._SolvegMethods[method](args)
+            linOP = self._SolveMethods[method](args)
+            residuals = []
+            def callback(res):
+                residuals.append(res)
+            
+            init = time.time()
+
+            # Solve the system with GMRES
+            x, info = spla.gmres(
+                self._A,
+                self._b,
+                x0=x0,
+                M=linOP,
+                rtol=rtol,
+                maxiter=maxiter,
+                callback=callback,
+                callback_type="pr_norm"
+            )
+
+            end = time.time()
+
+            print(info)
+            return residuals, x, end-init
+        
+        
         else:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
