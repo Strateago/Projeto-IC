@@ -128,36 +128,36 @@ def load_problem(problem):
 
     return A, OP, OR, b
 
-for problem in ['Esdras']:
+for problem in (p for p in problems if 'SPE10_85' in p):
 # for problem in problems:
     A, OP, OR, b = load_problem(problem)
 
     print(f'{problem}: {A.shape[0]}')
     sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)
-    # print('Estrutura da Matriz')
-    # sa.VerifyMatrixStructure(problem, save_path)
-    # print('ok')
-    # print('Espectro da matriz de Transmissibilidade')
-    # sa.InitialSpectre(problem, save_path)
-    # print('ok\n')
+    print('Estrutura da Matriz')
+    sa.VerifyMatrixStructure(problem, save_path)
+    print('ok')
+    print('Espectro da matriz de Transmissibilidade')
+    sa.InitialSpectre(problem, save_path)
+    print('ok\n')
     methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
     for method in methods:
         print(method)
-        # try:
-        #     av_error = sa.GetSpectre(method)
-        # except Exception as error:
-        #     print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
-        #     continue
-
         try:
-            res, x, time = sa.Solve(method)
+            av_error = sa.GetSpectre(method)
         except Exception as error:
-            print(f'{method} não pôde ser resolvido devido a: {error}\n')
+            print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
             continue
 
-        # print(len(av_error))
-        # print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
-        # sa.PlotSpectre(method, av_error, save_path, problem)
-        print(f'Tempo: {time}')
-        sa.PlotResidues(method, res, save_path, problem)
+        # try:
+        #     res, x, time = sa.Solve(method)
+        # except Exception as error:
+        #     print(f'{method} não pôde ser resolvido devido a: {error}\n')
+        #     continue
+
+        print(len(av_error))
+        print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
+        sa.PlotSpectre(method, av_error, save_path, problem)
+        # print(f'Tempo: {time}')
+        # sa.PlotResidues(method, res, save_path, problem)
         print()
