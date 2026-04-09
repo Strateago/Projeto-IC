@@ -11,7 +11,7 @@ class MatrixSpectralAnalysisSolve:
         self._OR = OR
         self._OP = OP
         self._A = A
-        self._b = b
+        self._b = b.flatten()
 
         spectral_methods = SpectralAnalysisMethods(self._A, self._b, self._OP, self._OR)
         self._SpectralMethods = {'Jacobi': spectral_methods.Jacobi,
@@ -92,10 +92,12 @@ class MatrixSpectralAnalysisSolve:
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
         args = (nnod, upperA, lowerA, diagA)
         if method in self._SolveMethods:
+
             linOP = self._SolveMethods[method](args)
             residuals = []
-            def callback(res):
-                residuals.append(res)
+            def callback(xk):
+                r = self._b - self._A @ xk
+                residuals.append(np.linalg.norm(r))
             
             init = time.time()
 
@@ -108,7 +110,7 @@ class MatrixSpectralAnalysisSolve:
                 rtol=rtol,
                 maxiter=maxiter,
                 callback=callback,
-                callback_type="pr_norm"
+                callback_type="x"
             )
 
             end = time.time()
@@ -141,16 +143,21 @@ class MatrixSpectralAnalysisSolve:
             plt.show()
         plt.close()
     
-    def PlotResidues(self, method, residues, save_path=None, problem=""):
+    def PlotResidues(self, methods, residues, save_path=None, problem=""):
         plt.figure()
-        plt.plot(residues)
-        plt.xlabel("Iteração")
+        plt.xlabel("Iterações")
         plt.ylabel("Resíduo")
-        plt.title(f'Resíduo {method}')
+        plt.title(f'Resíduos')
         plt.yscale("log")
         plt.grid(True)
+        for method in methods:
+            plt.plot(residues[method])
+        
+        plt.legend(methods, loc='center left', bbox_to_anchor=(1.02, 0.5), borderaxespad=0.)
+        plt.tight_layout()
+
         if save_path:
-            plt.savefig(f'{save_path}/{problem}/Residues/Residues_{method}_{problem}')
+            plt.savefig(f'{save_path}/{problem}/Residues/Residues')
         else:
             plt.show()
         plt.close()
