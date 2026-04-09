@@ -4,7 +4,7 @@ from MatrixSpectralAnalysisSolve import MatrixSpectralAnalysisSolve
 import scipy.io as sio
 import os, sys
 
-problems = ['Esdras', 'Barreira', 'Barreira_f', 'Joao', 'SPE10_0', 'SPE10_0_true', 'SPE10_0_quasi', 'SPE10_85', 'SPE10_85_true', 'SPE10_85_quasi']
+problems = ['Esdras', 'Barreira', 'Barreira_f', 'Joao', 'SPE10_0', 'SPE10_0_true', 'SPE10_0_quasi', 'SPE10_0_ABF', 'SPE10_85', 'SPE10_85_true', 'SPE10_85_quasi', 'SPE10_85_ABF']
 save_path = './Projeto-IC/Espectro/results'
 
 for x in problems:
@@ -101,6 +101,13 @@ def load_problem(problem):
         OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
         b = None
 
+    elif problem == 'SPE10_0_ABF':
+        data_path = './Projeto-IC/Espectro/dados/SPE10_0'
+        A = (np.load(f'{data_path}/Jpp_CPR_ABF_0.npy', allow_pickle=True)).sum()  
+        OR = (np.load(f'{data_path}/OR_0.npy', allow_pickle=True)).sum()
+        OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
+        b = None
+
     elif problem == 'SPE10_85':
         data_path = './Projeto-IC/Espectro/dados/SPE10_85'
         A = (np.load(f'{data_path}/Jpp_85.npy', allow_pickle=True)).sum()  
@@ -122,24 +129,31 @@ def load_problem(problem):
         OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
         b = None
 
+    elif problem == 'SPE10_85_ABF':
+        data_path = './Projeto-IC/Espectro/dados/SPE10_85'
+        A = (np.load(f'{data_path}/Jpp_CPR_ABF_85.npy', allow_pickle=True)).sum()  
+        OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
+        OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
+        b = None
+
     else:
         print('problema não reconhecido.')
         sys.exit()
 
     return A, OP, OR, b
 
-for problem in ['Esdras']:
+for problem in (p for p in problems if 'Barreira' in p):
 # for problem in problems:
     A, OP, OR, b = load_problem(problem)
 
     print(f'{problem}: {A.shape[0]}')
     sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)
-    # print('Estrutura da Matriz')
-    # sa.VerifyMatrixStructure(problem, save_path)
-    # print('ok')
-    # print('Espectro da matriz de Transmissibilidade')
-    # sa.InitialSpectre(problem, save_path)
-    # print('ok\n')
+    print('Estrutura da Matriz')
+    sa.VerifyMatrixStructure(problem, save_path)
+    print('ok\n')
+    print('Espectro da matriz de Transmissibilidade')
+    sa.InitialSpectre(problem, save_path)
+    print('ok\n')
     methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
     res = {
         'Jacobi': [],
@@ -153,21 +167,21 @@ for problem in ['Esdras']:
     }
     for method in methods:
         print(method)
-        # try:
-        #     av_error = sa.GetSpectre(method)
-        # except Exception as error:
-        #     print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
-        #     continue
-
         try:
-            res[method], x, time = sa.Solve(method, rtol=1e-15)
+            av_error = sa.GetSpectre(method)
         except Exception as error:
-            print(f'{method} não pôde ser resolvido devido a: {error}\n')
+            print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
             continue
 
-        # print(len(av_error))
-        # print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
-        # sa.PlotSpectre(method, av_error, save_path, problem)
-        print(f'Tempo: {time}, Iterações: {len(res[method])}\n')
+        # try:
+        #     res[method], x, time = sa.Solve(method, rtol=1e-15)
+        # except Exception as error:
+        #     print(f'{method} não pôde ser resolvido devido a: {error}\n')
+        #     continue
 
-    sa.PlotResidues(methods, res, save_path, problem)
+        print(len(av_error))
+        print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
+        sa.PlotSpectre(method, av_error, save_path, problem)
+    #     print(f'Tempo: {time}, Iterações: {len(res[method])}\n')
+
+    # sa.PlotResidues(methods, res, save_path, problem)
