@@ -7,13 +7,16 @@ from SolvingMethods import SolvingMethods
 import time
 
 class MatrixSpectralAnalysisSolve:
-    def __init__(self, A, OP, OR, b):
+    def __init__(self, A, OP, OR, b = None):
         self._OR = OR
         self._OP = OP
         self._A = A
-        self._b = b.flatten()
+        if b is not None:
+            self._b = b.flatten()
+        else:
+            self._b = b
 
-        spectral_methods = SpectralAnalysisMethods(self._A, self._b, self._OP, self._OR)
+        spectral_methods = SpectralAnalysisMethods(self._A, self._OP, self._OR)
         self._SpectralMethods = {'Jacobi': spectral_methods.Jacobi,
                         'Seidel': spectral_methods.Seidel,
                         'ILUfac': spectral_methods.ILUfac,
@@ -23,15 +26,15 @@ class MatrixSpectralAnalysisSolve:
                         'MultiscaleSeidel': spectral_methods.Multiscale_Seidel
                         }
         
-        solve_methods = SolvingMethods(self._A, self._b, self._OP, self._OR)
+        solve_methods = SolvingMethods(self._A, self._OP, self._OR)
         self._SolveMethods = {'Jacobi': solve_methods.Jacobi,
                         'Seidel': solve_methods.Seidel,
                         'ILUfac': solve_methods.ILUfac,
                         'Multiscale': solve_methods.Multiscale,
                         'MultiscaleILUfac': solve_methods.Multiscale_ILUfac,
                         'MultiscaleJacobi': solve_methods.Multiscale_Jacobi,
-                        'MultiscaleSeidel': solve_methods.Multiscale_Seidel
-                        # 'AMG': solve_methods.AMG
+                        'MultiscaleSeidel': solve_methods.Multiscale_Seidel,
+                        'AMG': solve_methods.AMG  
                         }
 
     def VerifyMatrixStructure(self, problem, save_path=None):
@@ -50,6 +53,8 @@ class MatrixSpectralAnalysisSolve:
         nnod = self._A.shape[0]                # número de graus de liberdade
         av_T = spla.eigs(self._A, which='LM', k=100, return_eigenvectors=False)  # espectro da matriz Tfina e espectro da matriz Tfina
         av_T = np.append(av_T, spla.eigs(self._A, which='SM', k=100, return_eigenvectors=False))
+
+        print(f'Max: {max(abs(av_T))} Min: {min(abs(av_T))}\n')
 
         plt.figure()
         # Círculo unitário
@@ -147,7 +152,7 @@ class MatrixSpectralAnalysisSolve:
         plt.figure()
         plt.xlabel("Iterações")
         plt.ylabel("Resíduo")
-        plt.title(f'Resíduos')
+        plt.title(f'Resíduos: {problem}')
         plt.yscale("log")
         plt.grid(True)
         for method in methods:
@@ -157,7 +162,7 @@ class MatrixSpectralAnalysisSolve:
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(f'{save_path}/{problem}/Residues/Residues')
+            plt.savefig(f'{save_path}/{problem}/Residues/Residues_{problem}')
         else:
             plt.show()
         plt.close()

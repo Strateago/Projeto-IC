@@ -1,11 +1,11 @@
 import numpy as np
 import scipy.sparse.linalg as spla
 import ilupp
+import pyamg
 
 class SolvingMethods:
-    def __init__(self, A, b, OP, OR):
+    def __init__(self, A, OP, OR):
         self._A = A
-        self._b = b
         self._OP = OP
         self._OR = OR
 
@@ -107,4 +107,12 @@ class SolvingMethods:
             return (precond_multiscale(x) + precond_seidel(x) - precond_multiscale(self._A @ precond_seidel(x))) # precond_multiscale_jacobi
             
         M = spla.LinearOperator(self._A.shape, precond)
+        return M
+
+    def AMG(self, args):
+        nnod, upperA, lowerA, diagA = args
+        A = self._A.tocsr()
+
+        ml = pyamg.smoothed_aggregation_solver(A)
+        M = ml.aspreconditioner()
         return M

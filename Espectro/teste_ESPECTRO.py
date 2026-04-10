@@ -4,25 +4,6 @@ from MatrixSpectralAnalysisSolve import MatrixSpectralAnalysisSolve
 import scipy.io as sio
 import os, sys
 
-problems = ['Esdras', 'Barreira', 'Barreira_f', 'Joao', 'SPE10_0', 'SPE10_0_true', 'SPE10_0_quasi', 'SPE10_0_ABF', 'SPE10_85', 'SPE10_85_true', 'SPE10_85_quasi', 'SPE10_85_ABF']
-save_path = './Projeto-IC/Espectro/results'
-
-for x in problems:
-    try:
-        os.mkdir(f'{save_path}/{x}')
-    except:
-        print('', end='')
-
-    try:
-        os.mkdir(f'{save_path}/{x}/Spectre')
-    except:
-        print('', end='')
-    
-    try:
-        os.mkdir(f'{save_path}/{x}/Residues')
-    except:
-        print('', end='')
-
 def load_problem(problem):
     if problem == 'Esdras':
         # Caso 1
@@ -142,46 +123,81 @@ def load_problem(problem):
 
     return A, OP, OR, b
 
-for problem in (p for p in problems if 'Barreira' in p):
+problems = ['Esdras', 'Barreira', 'Barreira_f', 'Joao', 'SPE10_0', 'SPE10_0_true', 'SPE10_0_quasi', 'SPE10_0_ABF', 'SPE10_85', 'SPE10_85_true', 'SPE10_85_quasi', 'SPE10_85_ABF']
+save_path = './Projeto-IC/Espectro/results'
+
+for x in problems:
+    try:
+        os.mkdir(f'{save_path}/{x}')
+    except:
+        print('', end='')
+
+    try:
+        os.mkdir(f'{save_path}/{x}/Spectre')
+    except:
+        print('', end='')
+    
+    try:
+        os.mkdir(f'{save_path}/{x}/Residues')
+    except:
+        print('', end='')
+
+methods = {'spectre': ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel'],
+           'solve': ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel', 'AMG']
+           }
+
+operation = 'spectre' # 'spectre' ou 'solve'
+
+for problem in (p for p in problems if 'ABF' in p):
 # for problem in problems:
     A, OP, OR, b = load_problem(problem)
 
     print(f'{problem}: {A.shape[0]}')
     sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)
-    print('Estrutura da Matriz')
-    sa.VerifyMatrixStructure(problem, save_path)
-    print('ok\n')
-    print('Espectro da matriz de Transmissibilidade')
-    sa.InitialSpectre(problem, save_path)
-    print('ok\n')
-    methods = ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel']
-    res = {
-        'Jacobi': [],
-        'Seidel': [],
-        'ILUfac': [],
-        'Multiscale': [], 
-        'MultiscaleILUfac': [], 
-        'MultiscaleJacobi': [], 
-        'MultiscaleSeidel':[]
-        # 'AMG': []
-    }
-    for method in methods:
-        print(method)
-        try:
-            av_error = sa.GetSpectre(method)
-        except Exception as error:
-            print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
-            continue
 
-        # try:
-        #     res[method], x, time = sa.Solve(method, rtol=1e-15)
-        # except Exception as error:
-        #     print(f'{method} não pôde ser resolvido devido a: {error}\n')
-        #     continue
+    if operation == 'spectre':
+        print('Estrutura da Matriz')
+        sa.VerifyMatrixStructure(problem, save_path)
+        print('ok\n')
+        print('Espectro da matriz de Transmissibilidade')
+        sa.InitialSpectre(problem, save_path)
+        print('ok\n')
 
-        print(len(av_error))
-        print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
-        sa.PlotSpectre(method, av_error, save_path, problem)
-    #     print(f'Tempo: {time}, Iterações: {len(res[method])}\n')
+        # for method in methods[operation]:
+        #     print(method)
+        #     try:
+        #         av_error = sa.GetSpectre(method)
+        #     except Exception as error:
+        #         print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
+        #         continue
 
-    # sa.PlotResidues(methods, res, save_path, problem)
+        #     print(len(av_error))
+        #     print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
+        #     sa.PlotSpectre(method, av_error, save_path, problem)
+
+
+    elif operation == 'solve':
+
+        res = {
+            'Jacobi': [],
+            'Seidel': [],
+            'ILUfac': [],
+            'Multiscale': [], 
+            'MultiscaleILUfac': [], 
+            'MultiscaleJacobi': [], 
+            'MultiscaleSeidel':[],
+            'AMG': []
+            }
+        
+        for method in methods[operation]:
+            print(method)
+
+            try:
+                res[method], x, time = sa.Solve(method, maxiter=100)
+            except Exception as error:
+                print(f'{method} não pôde ser resolvido devido a: {error}\n')
+                continue
+
+            print(f'Tempo: {time}, Iterações: {len(res[method])}\n')
+
+        sa.PlotResidues(methods['solve'], res, save_path, problem)

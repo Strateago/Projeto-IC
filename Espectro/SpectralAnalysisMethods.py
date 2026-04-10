@@ -3,9 +3,8 @@ import scipy.sparse.linalg as spla
 import ilupp
 
 class SpectralAnalysisMethods:
-    def __init__(self, A, b, OP, OR):
+    def __init__(self, A, OP, OR):
         self._A = A
-        self._b = b
         self._OP = OP
         self._OR = OR
 
