@@ -51,8 +51,22 @@ class MatrixSpectralAnalysisSolve:
     def InitialSpectre(self, problem, save_path=None):
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
         nnod = self._A.shape[0]                # número de graus de liberdade
-        av_T = spla.eigs(self._A, which='LM', k=100, return_eigenvectors=False)  # espectro da matriz Tfina e espectro da matriz Tfina
-        av_T = np.append(av_T, spla.eigs(self._A, which='SM', k=100, return_eigenvectors=False))
+        print('Init 1')
+        # 100 maior magnitude
+        BM = spla.eigs(self._A, k=100, which='LM', return_eigenvectors=False)          # espectro da matriz de iteração
+        print('ok\nInit 2')
+        # 100 menor magnitude
+        try:
+            SM = spla.eigs(self._A, k=100, which='SM', return_eigenvectors=False)
+        except spla.ArpackNoConvergence as error: # Captura especificamente o erro de convergência
+            SM = error.eigenvalues
+            print(f'SM não convergiu totalmente. Foram obtidos {len(SM)} autovalores.')
+        except (Exception, KeyboardInterrupt) as error: # Captura outros erros (memória, álgebra, etc)
+            SM = np.array([])
+            print(f'SM falhou por outro motivo: {error}')
+        print('ok')
+        
+        av_T = np.concatenate([BM, SM])
 
         print(f'Max: {max(abs(av_T))} Min: {min(abs(av_T))}\n')
 

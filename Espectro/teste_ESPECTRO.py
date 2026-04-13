@@ -148,7 +148,7 @@ methods = {'spectre': ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleIL
 
 operation = 'spectre' # 'spectre' ou 'solve'
 
-for problem in (p for p in problems if 'ABF' in p):
+for problem in ['SPE10_85_ABF']:
 # for problem in problems:
     A, OP, OR, b = load_problem(problem)
 
@@ -163,17 +163,17 @@ for problem in (p for p in problems if 'ABF' in p):
         sa.InitialSpectre(problem, save_path)
         print('ok\n')
 
-        # for method in methods[operation]:
-        #     print(method)
-        #     try:
-        #         av_error = sa.GetSpectre(method)
-        #     except Exception as error:
-        #         print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
-        #         continue
+        for method in methods[operation]:
+            print(method)
+            try:
+                av_error = sa.GetSpectre(method)
+            except Exception as error:
+                print(f'Analise Espectral de {method} não pôde ser realizada devido a: {error}\n')
+                continue
 
-        #     print(len(av_error))
-        #     print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
-        #     sa.PlotSpectre(method, av_error, save_path, problem)
+            print(len(av_error))
+            print(f'Max: {max(abs(av_error))}\nMin: {min(abs(av_error))}\n')
+            sa.PlotSpectre(method, av_error, save_path, problem)
 
 
     elif operation == 'solve':
