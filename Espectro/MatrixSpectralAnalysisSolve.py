@@ -111,14 +111,13 @@ class MatrixSpectralAnalysisSolve:
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
         args = (nnod, upperA, lowerA, diagA)
         if method in self._SolveMethods:
+            init = time.time()
 
             linOP = self._SolveMethods[method](args)
             residuals = []
             def callback(xk):
                 r = self._b - self._A @ xk
                 residuals.append(np.linalg.norm(r))
-            
-            init = time.time()
 
             # Solve the system with GMRES
             x, info = spla.gmres(
@@ -135,7 +134,7 @@ class MatrixSpectralAnalysisSolve:
             end = time.time()
 
             print(info)
-            return residuals, x, end-init
+            return residuals, x, end-init, info
         
         
         else:

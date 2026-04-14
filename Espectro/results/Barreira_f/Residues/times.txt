@@ -1,0 +1,10 @@
+Barreira_f: Tempos, Iterações e Convergência
+
+Jacobi: 0.6486570835113525, 64, 0
+Seidel: 3.20200777053833, 47, 0
+ILUfac: 0.21355628967285156, 13, 0
+Multiscale: 1.056243658065796, 100, 100
+MultiscaleILUfac: 0.06870627403259277, 3, 0
+MultiscaleJacobi: 0.12763047218322754, 10, 0
+MultiscaleSeidel: 0.6272192001342773, 7, 0
+AMG: 0.08904314041137695, 2, 0
