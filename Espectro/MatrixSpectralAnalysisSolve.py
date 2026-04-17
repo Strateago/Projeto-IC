@@ -168,9 +168,13 @@ class MatrixSpectralAnalysisSolve:
         plt.title(f'Resíduos: {problem}')
         plt.yscale("log")
         plt.grid(True)
+        markers = ['s', 'D', 'h', 'v', 'X', 'p', '*', 'o']
+        every = [1, 2, 3, 4, 1, 2, 3, 4]
         for method in methods:
-            plt.plot(residues[method])
-        
+            if len(residues[method]) < 10:
+                every[methods.index(method)] = 1
+            plt.plot(residues[method], marker=markers[methods.index(method)], markevery=every[methods.index(method)], label=method)
+
         plt.legend(methods, loc='center left', bbox_to_anchor=(1.02, 0.5), borderaxespad=0.)
         plt.tight_layout()
 

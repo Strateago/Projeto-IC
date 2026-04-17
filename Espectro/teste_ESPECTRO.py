@@ -11,6 +11,7 @@ problems = ['Esdras', 'Barreira', 'Barreira_f', 'SPE10_0', 'SPE10_0_true', 'SPE1
 methods = {'spectre': ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel'],
            'solve': ['Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi', 'MultiscaleSeidel', 'AMG']
            }
+iterations = [100, 100, 100, 20, 20, 20, 20, 20, 20, 20, 20]
 
 
 for problem in problems:
@@ -31,7 +32,6 @@ for problem in problems:
             print('', end='')
 
     A, OP, OR, b = load_problem(problem)
-
     print(f'{problem}: {A.shape[0]}')
     sa = MatrixSpectralAnalysisSolve(A, OP, OR, b)
 
@@ -71,7 +71,7 @@ for problem in problems:
         for method in methods[operation]:
             print(method)
             try:
-                res[method], x, time, info = sa.Solve(method, maxiter=100)
+                res[method], x, time, info = sa.Solve(method, maxiter=iterations[problems.index(problem)])
             except Exception as error:
                 print(f'{method} não pôde ser resolvido devido a: {error}\n')
                 continue
