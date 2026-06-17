@@ -67,7 +67,7 @@ for problem in problems:
             'MultiscaleSeidel':[],
             'AMG': []
             }
-        times.write(f'{problem}: Tempos, Iterações e Convergência\n\n')
+        times.write(f'{problem}: Tempos, Iterações, Convergência e Resíduo final\n\n')
         for method in methods[operation]:
             print(method)
             try:
@@ -76,7 +76,7 @@ for problem in problems:
                 print(f'{method} não pôde ser resolvido devido a: {error}\n')
                 continue
 
-            print(f'Tempo: {time}, Iterações: {len(res[method])}\n')
-            times.write(f'{method}: {time}, {len(res[method])}, {info}\n')
+            print(f'Tempo: {time}, Iterações: {len(res[method])}, Resíduo final: {res[method][-1]}\n')
+            times.write(f'{method}: {time}, {len(res[method])}, {info}, {res[method][-1]}\n')
         sa.PlotResidues(methods['solve'], res, save_path, problem)
         times.close()

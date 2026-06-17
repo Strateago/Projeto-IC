@@ -72,21 +72,21 @@ def load_problem(problem):
         A = (np.load(f'{data_path}/Jpp_CPR_true_IMPES_0.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_0.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
-        b = np.load(f'{data_path}/b_SPE-10_0.npy')
+        b = np.load(f'{data_path}/bp_CPR_true_IMPES_0.npy')
 
     elif problem == 'SPE10_0_quasi':
         data_path = './Projeto-IC/Espectro/dados/SPE10_0'
         A = (np.load(f'{data_path}/Jpp_CPR_quasi_IMPES_0.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_0.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
-        b = np.load(f'{data_path}/b_SPE-10_0.npy')
+        b = np.load(f'{data_path}/bp_CPR_quasi_IMPES_0.npy')
 
     elif problem == 'SPE10_0_ABF':
         data_path = './Projeto-IC/Espectro/dados/SPE10_0'
         A = (np.load(f'{data_path}/Jpp_CPR_ABF_0.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_0.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_0.npy', allow_pickle=True)).sum()
-        b = np.load(f'{data_path}/b_SPE-10_0.npy')
+        b = np.load(f'{data_path}/bp_CPR_ABF_0.npy')
 
     elif problem == 'SPE10_85':
         data_path = './Projeto-IC/Espectro/dados/SPE10_85'
@@ -100,21 +100,21 @@ def load_problem(problem):
         A = (np.load(f'{data_path}/Jpp_CPR_true_IMPES_85.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
-        b = np.load(f'{data_path}/b_SPE-10_85.npy')
+        b = np.load(f'{data_path}/bp_CPR_true_IMPES_85.npy')
 
     elif problem == 'SPE10_85_quasi':
         data_path = './Projeto-IC/Espectro/dados/SPE10_85'
         A = (np.load(f'{data_path}/Jpp_CPR_quasi_IMPES_85.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
-        b = np.load(f'{data_path}/b_SPE-10_85.npy')
+        b = np.load(f'{data_path}/bp_CPR_quasi_IMPES_85.npy')
 
     elif problem == 'SPE10_85_ABF':
         data_path = './Projeto-IC/Espectro/dados/SPE10_85'
         A = (np.load(f'{data_path}/Jpp_CPR_ABF_85.npy', allow_pickle=True)).sum()  
         OR = (np.load(f'{data_path}/OR_85.npy', allow_pickle=True)).sum()
         OP = (np.load(f'{data_path}/OP_85.npy', allow_pickle=True)).sum()
-        b = np.load(f'{data_path}/b_SPE-10_85.npy')
+        b = np.load(f'{data_path}/bp_CPR_ABF_85.npy')
 
     else:
         print('problema não reconhecido.')
