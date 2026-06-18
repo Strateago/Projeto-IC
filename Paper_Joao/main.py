@@ -7,10 +7,10 @@ import time
 import ilupp
 from load_data import load_data
 
-threshold = 1e-12
-fill = 15 # ILU1
+threshold = 1e-6
+fill = 2 # ILU1
 tol = 1e-4
-restart = 100
+restart = 10 
 
 data_path = './Projeto-IC/Paper_Joao/dados'
 # data = []
@@ -22,7 +22,7 @@ problem = "layer_1_Cr30"
 data = load_data(f'{data_path}/{problem}')
 
 M = ilupp.ILUTPreconditioner(data['T'], fill_in=fill, threshold=threshold)
-M = ilupp.ILU0Preconditioner(data['T'])
+# M = ilupp.ILU0Preconditioner(data['T'])
 residuals = []
 sol, code = fgmres(data['T'], data['b'], M=M, tol=tol, residuals=residuals, restart=restart)
 
