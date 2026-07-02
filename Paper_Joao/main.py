@@ -36,8 +36,9 @@ plt.yscale("log")
 plt.grid(True)
 problems = []
 layer = 'layer_85'
-mode = "Sem Pré-condicionador"
+mode = "ILU1"
 plt.title(f'Resíduos: Camada 85 - {mode}')
+print(mode , end="\n\n")
 
 for dir in [d for d in os.listdir(f'{data_path}') if d.startswith(layer)]:
     print(dir)
@@ -66,14 +67,12 @@ for dir in [d for d in os.listdir(f'{data_path}') if d.startswith(layer)]:
 
     # print(f"Erro Relativo: {erro_relativo:.4f} ({erro_relativo * 100:.2f}%)")
 
-
-    init = time.time()
-
     # linOP = ilupp.ILU0Preconditioner(Ac)
     residuals = []
     def callback(xk):
         residuals.append(xk)
 
+    init = time.time()
     # Solve the system with GMRES
     x, info = spla.gmres(
         Ac,
@@ -89,6 +88,10 @@ for dir in [d for d in os.listdir(f'{data_path}') if d.startswith(layer)]:
     end = time.time()
 
     print(info)
+    time_gmres = end - init
+    print(f"Tempo de execução (gmres): {time_gmres:.4f} segundos")
+
+    # Verificando a solução obtida com GMRES
     # sol_f = data['OP'] @ x
 
     # erro_absoluto = np.linalg.norm(sol_ref - sol_f)
@@ -96,7 +99,12 @@ for dir in [d for d in os.listdir(f'{data_path}') if d.startswith(layer)]:
 
     # print(f"Erro Relativo (gmres): {erro_relativo:.4f} ({erro_relativo * 100:.2f}%)\n")
 
-    # print(residuals, '\n')
+    # Avaliando o spsolve para a malha
+    init = time.time()
+    sol_f = spla.spsolve(Ac, b_c)
+    end = time.time()
+    time_spsolve = end - init
+    print(f"Tempo de execução (spsolve): {time_spsolve:.4f} segundos\n")
 
     plt.plot(residuals, label=dir)
 #     problems.append(dir)
