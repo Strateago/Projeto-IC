@@ -72,7 +72,7 @@ print(f'Generating level_vector')
 fines = np.random.choice(H*V*A, size=round(H*V*A * 0.3), replace=False) # 30% dos volumes são finos
 centroids, adjs = generate_adj_cent(H, V, A)
 gids = np.arange(H*V*A)
-vector = label_levels_from_fines(adjs, gids[fines],2) # 5 níveis
+vector = label_levels_from_fines(adjs, gids[fines],2) # 3 níveis
 print('Done')
 
 # Processamento
@@ -80,7 +80,7 @@ print(f'Start Processing')
 nX = [3, 3, 3, 3]
 nY = [3, 3, 3, 3]
 nZ = [3, 3, 3, 3]
-sla = MultiLevel_NUADM(nX, nY, nZ, levels=3) # 5 níveis -> 4 engrossamentos
+sla = MultiLevel_NUADM(nX, nY, nZ, levels=3) # 3 níveis -> 2 engrossamentos
 
 init = time.time()
 sla.run(centroids, vector)

@@ -7,7 +7,39 @@ from SolvingMethods import SolvingMethods
 import time
 
 class MatrixSpectralAnalysisSolve:
+    """
+    Classe para análise espectral e resolução de sistemas lineares usando diferentes métodos de pré-condicionamento.
+
+    Métodos disponíveis:
+        - Jacobi: Implementação do método de Jacobi para pré-condicionamento.
+        - Seidel: Implementação do método de Gauss-Seidel para pré-condicionamento.
+        - ILUfac: Implementação da fatoração ILU0 para pré-condicionamento.
+        - Multiscale: Implementação do método multiscale para pré-condicionamento.
+        - MultiscaleILUfac: Implementação do método multiscale em conjunto com ILU0 (Multiplicativo) para pré-condicionamento.
+        - MultiscaleJacobi: Implementação do método multiscale em conjunto com Jacobi (Multiplicativo) para pré-condicionamento.
+        - MultiscaleSeidel: Implementação do método multiscale em conjunto com Gauss-Seidel (Multiplicativo) para pré-condicionamento.
+    
+    Methods:
+        VerifyMatrixStructure (str, str | None): Verifica e plota a estrutura da matriz A.
+        InitialSpectre (str, str | None): Realiza a análise espectral inicial da matriz A.
+        GetSpectre (str): Obtém o espectro da matriz A usando o método especificado.
+        Solve (str, List[float] | None, float, int): Resolve o sistema linear usando o método especificado.
+        PlotSpectre (str, List[float], str | None, str): Plota o espectro do pré-condicionador especificado de um dos métodos.
+        PlotResidues (List[str], List[np.ndarray], str | None, str): Plota os resíduos das iterações para os métodos especificados.
+        
+    """
+
     def __init__(self, A, OP, OR, b = None):
+        """
+        Inicializa a classe com as matrizes A, OP, OR e o vetor b.
+
+        Args:
+            A (scipy.sparse.csc_matrix): Matriz de transmissibilidade.
+            OP (scipy.sparse.csc_matrix): Matriz de prolongamento.
+            OR (scipy.sparse.csc_matrix): Matriz de restrição.
+            b (numpy.ndarray | None): Vetor do lado direito do sistema linear. Se None, assume-se que não há vetor b.
+        """
+
         self._OR = OR
         self._OP = OP
         self._A = A
@@ -38,6 +70,14 @@ class MatrixSpectralAnalysisSolve:
                         }
 
     def VerifyMatrixStructure(self, problem, save_path=None):
+        """
+        Verifica e plota a estrutura da matriz A.
+        
+        Args:
+            problem (str): Problema para o qual a estrutura da matriz será verificada.
+            save_path (str | None): Caminho para salvar o gráfico da estrutura da matriz. Se None, o gráfico será exibido na tela.
+        """
+
         # ----- Verificando a estrutura da matriz (TPFA) -----
         plt.figure()
         plt.spy(self._A)
@@ -49,6 +89,15 @@ class MatrixSpectralAnalysisSolve:
         plt.close()
 
     def InitialSpectre(self, problem, save_path=None):
+        """
+        Gera o espectro parcial inicial da matriz A, incluindo os 100 maiores e 100 menores autovalores.
+        Atenção: Menores autovalores podem não convergir, então podem ter menos de 100 menores.
+
+        Args:
+            problem (str): Problema para o qual o espectro será gerado.
+            save_path (str | None): Caminho para salvar o gráfico do espectro. Se None, o gráfico será exibido na tela.
+        """
+
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
         nnod = self._A.shape[0]                # número de graus de liberdade
         print('Init 1')
@@ -92,24 +141,48 @@ class MatrixSpectralAnalysisSolve:
         plt.close()
 
     def GetSpectre(self, method):
+        """
+        Gera o espectro da matriz A pré-condicionada usando o método especificado.
+
+        Args:
+            method (str): Método de pré-condicionamento a ser utilizado. Pode ser 'Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi' ou 'MultiscaleSeidel'.
+
+        Returns:
+            numpy.ndarray: Array contendo os 100 maiores e 100 menores autovalores da matriz A pré-condicionada.
+            -- Menores autovalores podem não convergir, então podem ter menos de 100 menores.
+        """
+
         # ----- Análise espectral da matriz de transmissibilidade pré-condicionada -----
-        nnod = self._A.shape[0]                # número de graus de liberdade
         lowerA = sp.tril(self._A, k=-1)    # matriz triangular inferior
-        upperA = sp.triu(self._A, k=1)     # matriz triangular superior
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
 
-        args = (nnod, upperA, lowerA, diagA)
+        args = (lowerA, diagA)
         if method in self._SpectralMethods:
             return self._SpectralMethods[method](args)
         else:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
     def Solve(self, method, x0=None, rtol=1e-8, maxiter=2500):
-        nnod = self._A.shape[0]                # número de graus de liberdade
+        """
+        Resolve o sistema linear usando o método especificado.
+
+        Args:
+            method (str): Método de pré-condicionamento a ser utilizado. Pode ser 'Jacobi', 'Seidel', 'ILUfac', 'Multiscale', 'MultiscaleILUfac', 'MultiscaleJacobi' ou 'MultiscaleSeidel'.
+            x0 (numpy.ndarray | None): Vetor inicial para o método iterativo. Se None, será utilizado o vetor nulo.
+            rtol (float): Tolerância relativa para a convergência do método iterativo
+            maxiter (int): Número máximo de iterações para o método iterativo.
+
+        Returns:
+            Tuple[numpy.ndarray, numpy.ndarray, float, int]: Uma tupla contendo:
+                - Array de resíduos das iterações.
+                - Solução do sistema linear.
+                - Tempo de execução do método.
+                - Informação sobre a convergência do método (0 se convergiu, >0 se não convergiu).
+        """
+
         lowerA = sp.tril(self._A, k=-1)    # matriz triangular inferior
-        upperA = sp.triu(self._A, k=1)     # matriz triangular superior
         diagA  = sp.diags(self._A.diagonal(), format="csc")             # diagonal da matriz
-        args = (nnod, upperA, lowerA, diagA)
+        args = (lowerA, diagA)
         if method in self._SolveMethods:
             init = time.time()
 
@@ -141,7 +214,17 @@ class MatrixSpectralAnalysisSolve:
             raise ValueError(f"Método '{method}' não reconhecido.")
         
         
-    def PlotSpectre(self, method, av_error_operator, save_path=None, problem = ""):
+    def PlotSpectre(self, method, autovalores, save_path=None, problem = ""):
+        """
+        Plota o espectro do pré-condicionador especificado de um dos métodos.
+
+        Args:
+            method (str): Método de pré-condicionamento utilizado (Importante apenas para título e onde será armazenado).
+            autovalores (numpy.ndarray): Array contendo os autovalores.
+            save_path (str | None): Caminho para salvar o gráfico do espectro. Se None, o gráfico será exibido na tela.
+            problem (str): Nome do problema para o qual o espectro será gerado.
+        """
+
         plt.figure()
         x = np.arange(-1.0, 1.01, 0.01)
         x[-1] = 1.0
@@ -149,7 +232,7 @@ class MatrixSpectralAnalysisSolve:
         y = -np.sqrt(1 - x**2)
         plt.plot(x, z, 'b')
         plt.plot(x, y, 'b')
-        plt.plot(np.real(av_error_operator), np.imag(av_error_operator), '*r', label='Autovalores')
+        plt.plot(np.real(autovalores), np.imag(autovalores), '*r', label='Autovalores')
         plt.xlabel('Re(lambda)')
         plt.ylabel('Imag(lambda)')
         plt.title(f'Espectro: pré-condicionador {method}')
@@ -162,6 +245,16 @@ class MatrixSpectralAnalysisSolve:
         plt.close()
     
     def PlotResidues(self, methods, residues, save_path=None, problem=""):
+        """
+        Plota os resíduos das iterações para os métodos especificados.
+
+        Args:
+            methods (List[str]): Lista de métodos utilizados.
+            residues (List[numpy.ndarray]): Lista (tipo dicionário) de arrays contendo os resíduos das iterações para cada método.
+            save_path (str | None): Caminho para salvar o gráfico dos resíduos. Se None, o gráfico será exibido na tela.
+            problem (str): Nome do problema para o qual os resíduos serão plotados.
+        """
+
         plt.figure()
         plt.xlabel("Iterações")
         plt.ylabel("Resíduo")

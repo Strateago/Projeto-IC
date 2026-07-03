@@ -4,6 +4,14 @@ import scipy.io as sio
 import sys
 
 def load_problem(problem):
+    """
+    Carrega os dados do problema especificado.
+
+    Args:
+        problem (str): Nome do problema a ser carregado. Pode ser 'Esdras', 'Joao', 'Barreira', 'Barreira_f', 'SPE10_0', 'SPE10_0_true', 'SPE10_0_quasi', 'SPE10_0_ABF', 'SPE10_85', 'SPE10_85_true', 'SPE10_85_quasi' ou 'SPE10_85_ABF'.
+        -- Problemas novos podem ser adicionados facilmente, basta normear as variáveis retornadas da mesma forma.
+    """
+    
     if problem == 'Esdras':
         # Caso 1
         data = sio.loadmat("Projeto-IC/arquivos/Problema_heterogeneo_buck_30x30.mat")

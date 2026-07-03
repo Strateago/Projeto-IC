@@ -3,14 +3,38 @@ import scipy.sparse.linalg as spla
 import ilupp
 
 class SpectralAnalysisMethods:
+    """
+    Classe para análise espectral de métodos iterativos aplicados a sistemas lineares.
+    Esta classe fornece métodos para calcular o espectro do operador de propagação de erro para diferentes pré-condicionadores, incluindo Jacobi, Gauss-Seidel, ILU(0), Multiescala e combinações destes.
+    A análise espectral é útil para entender a convergência de métodos iterativos e a eficácia de pré-condicionadores aplicados a sistemas lineares.
+    É possível adicionar novos métodos de análise espectral implementando funções adicionais nesta classe, seguindo o mesmo padrão dos métodos existentes e adicionando ao dicionário _SpectralMethods na classe principal.
+
+    Métodos:
+        Jacobi(args): Calcula o espectro do operador de propagação de erro usando o pré-condicionador de Jacobi.
+        Seidel(args): Calcula o espectro do operador de propagação de erro usando o pré-condicionador de Gauss-Seidel.
+        ILUfac(args): Calcula o espectro do operador de propagação de erro usando o pré-condicionador ILU(0).
+        Multiscale(args): Calcula o espectro do operador de propagação de erro usando o pré-condicionador Multiescala.
+        Multiscale_ILUfac(args): Calcula o espectro do operador de propagação de erro usando uma combinação de pré-condicionadores Multiescala e ILU(0).
+        Multiscale_Jacobi(args): Calcula o espectro do operador de propagação de erro usando uma combinação de pré-condicionadores Multiescala e Jacobi.
+        Multiscale_Seidel(args): Calcula o espectro do operador de propagação de erro usando uma combinação de pré-condicionadores Multiescala e Gauss-Seidel.
+    """
     def __init__(self, A, OP, OR):
         self._A = A
         self._OP = OP
         self._OR = OR
 
     def Jacobi(self, args):
+        """
+        Método de Jacobi: Pré-condicionador diagonal
+
+        Args:
+            args (tuple): Contém os seguintes elementos:
+                - lowerA: Parte inferior da matriz A
+                - diagA: Diagonal da matriz A
+        """
+
         # ----- MÉTODO DE JACOBI -----
-        nnod, upperA, lowerA, diagA = args
+        lowerA, diagA = args
 
         precond_jacobi = 1/(diagA.diagonal())                                  # pré-condicionador diagonal
 
@@ -37,8 +61,17 @@ class SpectralAnalysisMethods:
         return av_error_operator
 
     def Seidel(self, args):
+        """
+        Método de Gauss-Seidel: Pré-condicionador triangular inferior
+
+        Args:
+            args (tuple): Contém os seguintes elementos:
+                - lowerA: Parte inferior da matriz A
+                - diagA: Diagonal da matriz A
+        """
+
         # ----- MÉTODO DE GAUSS-SEIDEL -----
-        nnod, upperA, lowerA, diagA = args
+        lowerA, diagA = args
 
         M = lowerA + diagA
         def apply_G(x):
@@ -66,8 +99,17 @@ class SpectralAnalysisMethods:
         return av_error_operator
         
     def ILUfac(self, args):
+        """
+        Método ILU(0): Pré-condicionador baseado em fatoração incompleta LU
+
+        Args:
+            args (tuple): Contém os seguintes elementos (não necessários para o cálculo, mas incluídos para consistência):
+                - lowerA: Parte inferior da matriz A
+                - diagA: Diagonal da matriz A
+        """
+
         # ----- MATRIZ A COM SUAVIZADOR ILU(0) -----
-        nnod, upperA, lowerA, diagA = args
+        lowerA, diagA = args
 
         ilu = ilupp.ILU0Preconditioner(self._A)
         def apply_G(x):
@@ -100,8 +142,17 @@ class SpectralAnalysisMethods:
         return av_error_operator
     
     def Multiscale(self, args):
+        """
+        Método Multiescala: Pré-condicionador baseado em decomposição multiescala
+
+        Args:
+            args (tuple): Contém os seguintes elementos (não necessários para o cálculo, mas incluídos para consistência):
+                - lowerA: Parte inferior da matriz A
+                - diagA: Diagonal da matriz A
+        """
+
         # ----- MATRIZ A com pré-condicionador Multiescala -----
-        nnod, upperA, lowerA, diagA = args
+        lowerA, diagA = args
 
         RAP = self._OR @ self._A @ self._OP
         RA = self._OR @ self._A
@@ -130,8 +181,17 @@ class SpectralAnalysisMethods:
         return av_error_operator
 
     def Multiscale_ILUfac(self, args):
+        """
+        Método Multiescala + ILU(0): Combinação de pré-condicionadores multiescala e ILU(0)
+
+        Args:
+            args (tuple): Contém os seguintes elementos (não necessários para o cálculo, mas incluídos para consistência):
+                - lowerA: Parte inferior da matriz A
+                - diagA: Diagonal da matriz A
+        """
+
         # # ----- MATRIZ A pré-condicionador Multiescala + SUAVIZADOR ILU(0) -----
-        nnod, upperA, lowerA, diagA = args
+        lowerA, diagA = args
 
         ilu = ilupp.ILU0Preconditioner(self._A)
         def precond_ilu(x): # Aproximação de A-1 ilu
@@ -171,8 +231,16 @@ class SpectralAnalysisMethods:
         return av_error_operator
 
     def Multiscale_Jacobi(self, args):
-        # ----- MATRIZ A pré-condicionador Multiescala + Jacobi -----
-        nnod, upperA, lowerA, diagA = args
+        """
+        Método Multiescala + Jacobi: Combinação de pré-condicionadores multiescala e Jacobi
+
+        Args:
+            args (tuple): Contém os seguintes elementos:
+                - lowerA: Parte inferior da matriz A
+                - diagA: Diagonal da matriz A
+        """
+
+        lowerA, diagA = args
 
         inv_diag = 1/diagA.diagonal()
         def precond_jacobi(x):
@@ -209,7 +277,16 @@ class SpectralAnalysisMethods:
         return av_error_operator
 
     def Multiscale_Seidel(self, args):
-        nnod, upperA, lowerA, diagA = args
+        """
+        Método Multiescala + Gauss-Seidel: Combinação de pré-condicionadores multiescala e Gauss-Seidel
+
+        Args:
+            args (tuple): Contém os seguintes elementos:
+                - lowerA: Parte inferior da matriz A
+                - diagA: Diagonal da matriz A
+        """
+
+        lowerA, diagA = args
 
         M = lowerA + diagA
         def precond_seidel(x):
