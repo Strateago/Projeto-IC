@@ -188,6 +188,16 @@ class SolvingMethods:
         return M
 
     def AMG(self, args):
+        """
+        Método de pré-condicionamento AMG (Algebraic Multigrid): Aproximação de A-1 usando o método multigrid algébrico.
+        Método do Estado da Arte para pré-condicionamento de sistemas lineares esparsos.
+
+        Args:
+            args (tuple): Uma tupla contendo:
+                - lowerA (scipy.sparse.csc_matrix): A matriz triangular inferior de A.
+                - diagA (scipy.sparse.csc_matrix): A matriz diagonal de A.
+        """
+
         lowerA, diagA = args
         A = self._A.tocsr()
 
